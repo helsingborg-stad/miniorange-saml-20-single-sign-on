@@ -1,0 +1,32 @@
+{
+    "name": "helsingborg-stad/miniorange-saml-20-single-sign-on-municipio",
+    "description": "A fork of miniorange saml 20 single signon plugin with added hooks",
+    "type": "wordpress-plugin",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Sebastian Thulin",
+            "email": "sebastian.thulin@helsingborg.se"
+        }
+    ],
+    "minimum-stability": "stable",
+    "repositories": [
+        {
+            "type": "composer",
+            "url": "https://wpackagist.org"
+        }
+    ],
+    "require": {
+        "wpackagist-plugin/miniorange-saml-20-single-sign-on":"5.2.3"
+    },
+    "extra": {
+        "installer-paths": {
+            "./": ["wpackagist-plugin/miniorange-saml-20-single-sign-on"]
+        }
+    },
+    "config": {
+        "allow-plugins": {
+            "composer/installers": true
+        }
+    }
+}
