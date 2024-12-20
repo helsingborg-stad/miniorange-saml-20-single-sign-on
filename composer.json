@@ -28,5 +28,10 @@
         "allow-plugins": {
             "composer/installers": true
         }
+    },
+    "scripts": {
+        "post-install-cmd": [
+            "php scripts/AddAttributesAction.php"
+        ]
     }
 }
