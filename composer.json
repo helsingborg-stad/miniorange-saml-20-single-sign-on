@@ -2,6 +2,7 @@
     "name": "helsingborg-stad/miniorange-saml-20-single-sign-on-municipio",
     "description": "A fork of miniorange saml 20 single signon plugin with added hooks",
     "type": "wordpress-plugin",
+    "version": "5.2.4",
     "license": "MIT",
     "authors": [
         {
@@ -19,6 +20,11 @@
     "require": {
         "wpackagist-plugin/miniorange-saml-20-single-sign-on":"5.2.4"
     },
+    "autoload": {
+        "psr-4": {
+            "Municipio\\Scripts\\": "Scripts/"
+        }
+    },
     "extra": {
         "installer-paths": {
             "./": ["wpackagist-plugin/miniorange-saml-20-single-sign-on"]
@@ -28,7 +34,7 @@
                 "filePath": "./class-mo-saml-login-validate.php",
                 "expectedHash": "d41d8cd98f00b204e9800998ecf8427e",
                 "injectContent": "do_action('MiniOrange/SamlCheckMapping/AttributesListener', $attrs);",
-                "row": 15
+                "row": 367
             }
         ]
     },
@@ -39,7 +45,11 @@
     },
     "scripts": {
         "post-install-cmd": [
-            "Municipio\\FileModifier::modify"
+            "Municipio\\Scripts\\FileModifier::modify"
+        ],
+        "remake": [
+            "composer remove wpackagist-plugin/miniorange-saml-20-single-sign-on",
+            "composer require wpackagist-plugin/miniorange-saml-20-single-sign-on:5.2.4"
         ]
     }
 }

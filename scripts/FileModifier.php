@@ -1,6 +1,6 @@
 <?php
 
-namespace Municipio;
+namespace Municipio\Scripts;
 
 use Composer\Script\Event;
 
