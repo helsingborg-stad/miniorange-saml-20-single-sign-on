@@ -1,0 +1,44 @@
+name: Manage version tags
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v2
+      with:
+        fetch-depth: 0
+
+    - name: Get version from composer.json
+      id: get-version
+      run: |
+        VERSION=$(jq -r .version composer.json)
+        echo "VERSION=$VERSION" >> $GITHUB_ENV
+
+    - name: Check if release with version exists
+      id: check-release
+      run: |
+        EXISTING_RELEASE=$(curl -s https://api.github.com/repos/${{ github.repository }}/releases/tags/${{ env.VERSION }} | jq -r '.id')
+        echo "EXISTING_RELEASE=$EXISTING_RELEASE" >> $GITHUB_ENV
+
+    - name: Create or update release
+      id: create-release
+      run: |
+        if [ "$EXISTING_RELEASE" != "null" ]; then
+          echo "Updating existing release with version $VERSION"
+          curl -X PATCH \
+            -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+            -d '{"tag_name": "${{ env.VERSION }}", "name": "${{ env.VERSION }}", "body": "Release for version $VERSION"}' \
+            https://api.github.com/repos/${{ github.repository }}/releases/$EXISTING_RELEASE
+        else
+          echo "Creating new release for version $VERSION"
+          curl -X POST \
+            -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+            -d '{"tag_name": "${{ env.VERSION }}", "name": "${{ env.VERSION }}", "body": "Release for version $VERSION"}' \
+            https://api.github.com/repos/${{ github.repository }}/releases
+        fi
