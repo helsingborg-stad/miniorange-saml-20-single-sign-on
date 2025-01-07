@@ -129,15 +129,17 @@ class FileModifier
             return false;
         }
 
-        $updatedContents = [];
-        foreach ($fileContents as $index => $line) {
-            if ($index + 1 === $row) {
-                $updatedContents[] = $injectContent;
-            }
-            $updatedContents[] = $line;
+        // Ensure the row is within the valid range
+        if ($row < 1 || $row > count($fileContents) + 1) {
+            self::log("Invalid row number: $row for file: $filePath");
+            return false;
         }
 
-        $result = file_put_contents($filePath, implode(PHP_EOL, $updatedContents));
+        // Insert the content at the specified row
+        array_splice($fileContents, $row - 1, 0, $injectContent);
+
+        // Write the updated content back to the file
+        $result = file_put_contents($filePath, implode(PHP_EOL, $fileContents));
         if ($result === false) {
             self::log("Failed to write to file: $filePath");
             return false;
