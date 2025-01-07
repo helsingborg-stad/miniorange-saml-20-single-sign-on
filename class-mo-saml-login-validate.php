@@ -364,9 +364,6 @@ class Mo_SAML_Login_Validate {
 				update_option( Mo_Saml_Sso_Constants::MO_SAML_TEST_STATUS, 1 );
 				$this->mo_saml_show_test_result( $first_name, $last_name, $user_email, $group_name, $attrs );
 			} else {
-        // Add attributes action, to allow other plugins to handle data.
-        do_action("MiniOrange/SamlCheckMapping/AttibutesListener", $attrs);
-
 				$this->mo_saml_login_user( $user_email, $first_name, $last_name, $user_name, $group_name, $default_role, $relay_state, $check_if_match_by );
 			}
 		} catch ( Exception $e ) {

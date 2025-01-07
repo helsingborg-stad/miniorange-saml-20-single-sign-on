@@ -48,7 +48,12 @@
             "Municipio\\Scripts\\FileModifier::modify"
         ],
         "remake": [
-            "rm composer.lock && cp composer.json composer.json.bkup && composer remove wpackagist-plugin/miniorange-saml-20-single-sign-on && mv composer.json.bkup composer.json && composer require wpackagist-plugin/miniorange-saml-20-single-sign-on:5.2.4"
+            "rm composer.lock",
+            "cp composer.json composer.json.bkup",
+            "composer remove wpackagist-plugin/miniorange-saml-20-single-sign-on",
+            "mv composer.json.bkup composer.json",
+            "composer require wpackagist-plugin/miniorange-saml-20-single-sign-on:5.2.4",
+            "Municipio\\Scripts\\FileModifier::modify"
         ]
     }
 }

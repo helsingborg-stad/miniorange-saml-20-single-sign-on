@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "127cbd93e5b115acb73f0f8dd18dff22",
+    "content-hash": "f3de09c88dcd615f9889fb2733f23f8d",
     "packages": [
         {
             "name": "composer/installers",
@@ -154,15 +154,15 @@
         },
         {
             "name": "wpackagist-plugin/miniorange-saml-20-single-sign-on",
-            "version": "5.2.3",
+            "version": "5.2.4",
             "source": {
                 "type": "svn",
                 "url": "https://plugins.svn.wordpress.org/miniorange-saml-20-single-sign-on/",
-                "reference": "tags/5.2.3"
+                "reference": "tags/5.2.4"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://downloads.wordpress.org/plugin/miniorange-saml-20-single-sign-on.5.2.3.zip"
+                "url": "https://downloads.wordpress.org/plugin/miniorange-saml-20-single-sign-on.5.2.4.zip"
             },
             "require": {
                 "composer/installers": "^1.0 || ^2.0"
