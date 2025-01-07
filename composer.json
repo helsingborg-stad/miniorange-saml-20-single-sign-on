@@ -44,15 +44,11 @@
         }
     },
     "scripts": {
-        "pre-reinstall": [
-            "cp composer.json composer.json.bkup"
-        ],
         "post-install-cmd": [
             "Municipio\\Scripts\\FileModifier::modify"
         ],
         "remake": [
-            "composer remove wpackagist-plugin/miniorange-saml-20-single-sign-on",
-            "composer require wpackagist-plugin/miniorange-saml-20-single-sign-on:5.2.4"
+            "composer require wpackagist-plugin/miniorange-saml-20-single-sign-on:5.2.4 --force-reinstall"
         ]
     }
 }
