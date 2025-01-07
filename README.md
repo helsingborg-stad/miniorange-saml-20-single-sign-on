@@ -24,6 +24,10 @@ add_action('mo_saml_user_group_name', function($user_id, $group_name) {
 });
 ``` 
 
+## How to update 
+
+To fetch the latests upstream, please change version of this package, and the required package and run ```composer remake``` to build a new version. 
+
 # Default documentation
 
 
