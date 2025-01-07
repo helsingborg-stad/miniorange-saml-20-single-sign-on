@@ -37,10 +37,10 @@
                 "row": 367
             },
             {
-                "filePath": "./readme.md",
-                "expectedHash": "",
-                "injectContent": "#MiniOrange - Fork With hooks ## Hooks\n\n### MiniOrange/SamlCheckMapping/AttributesListener\n\nThis hook is fired when the plugin has fetched the user attributes from the SAML response. The hook is fired with the fetched attributes as the first argument.\n\n```php\nadd_action('MiniOrange/SamlCheckMapping/AttributesListener', function($attributes) {\n    // Do something with the attributes\n});\n```",
-                "row": 0
+                "filePath": "./readme.txt",
+                "expectedHash": "dfbd9d0e589f29d4098e50d1b17c5890",
+                "injectContent": "#MiniOrange - Fork With hooks \n\n## Hooks\n\n### MiniOrange/SamlCheckMapping/AttributesListener\n\nThis hook is fired when the plugin has fetched the user attributes from the SAML response. The hook is fired with the fetched attributes as the first argument.\n\n```php\nadd_action('MiniOrange/SamlCheckMapping/AttributesListener', function($attributes) {\n    // Do something with the attributes\n});\n```",
+                "row": 1
             }
         ]
     },

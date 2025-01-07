@@ -1,3 +1,16 @@
+#MiniOrange - Fork With hooks 
+
+## Hooks
+
+### MiniOrange/SamlCheckMapping/AttributesListener
+
+This hook is fired when the plugin has fetched the user attributes from the SAML response. The hook is fired with the fetched attributes as the first argument.
+
+```php
+add_action('MiniOrange/SamlCheckMapping/AttributesListener', function($attributes) {
+    // Do something with the attributes
+});
+```
 ﻿=== SAML Single Sign On – SSO Login ===
 Contributors: miniOrange
 Donate link: https://plugins.miniorange.com
