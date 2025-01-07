@@ -1,5 +1,5 @@
 {
-    "name": "helsingborg-stad/miniorange-saml-20-single-sign-on-municipio",
+    "name": "helsingborg-stad/miniorange-saml-20-single-sign-on",
     "description": "A fork of miniorange saml 20 single signon plugin with added hooks",
     "type": "wordpress-plugin",
     "version": "5.2.4",
