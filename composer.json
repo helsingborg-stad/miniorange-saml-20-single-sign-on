@@ -58,7 +58,8 @@
             "rm -rf composer.lock",
             "composer install",
             "composer dump-autoload -o",
-            "Municipio\\Scripts\\FileModifier::modify"
+            "Municipio\\Scripts\\FileModifier::modify",
+            "cp readme.txt README.md"
         ]
     }
 }
