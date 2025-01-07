@@ -364,7 +364,7 @@ class Mo_SAML_Login_Validate {
 				update_option( Mo_Saml_Sso_Constants::MO_SAML_TEST_STATUS, 1 );
 				$this->mo_saml_show_test_result( $first_name, $last_name, $user_email, $group_name, $attrs );
 			} else {
-        do_action('MiniOrange/SamlCheckMapping/AttributesListener', $attrs);
+        do_action('mo_saml_user_attributes', $attrs);
 				$this->mo_saml_login_user( $user_email, $first_name, $last_name, $user_name, $group_name, $default_role, $relay_state, $check_if_match_by );
 			}
 		} catch ( Exception $e ) {
@@ -575,6 +575,7 @@ class Mo_SAML_Login_Validate {
 				Mo_SAML_Logger::mo_saml_add_log( Mo_Saml_Error_Log::mo_saml_write_message( 'LOGIN_WIDGET_DEFAULT_ROLE', array( 'defaultRole' => $default_role ) ), Mo_SAML_Logger::DEBUG );
 			}
 		}
+    do_action( 'mo_saml_user_group_name', $user_id, $group_name );
 		$this->mo_saml_add_firstlast_name( $user_id, $first_name, $last_name, $relay_state );
 	}
 

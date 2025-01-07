@@ -1,16 +1,32 @@
-#MiniOrange - Fork With hooks 
+# MiniOrange - Hookable 
+
+This fork of the MiniOrange plugin adds useful hooks for mapping SSO (Single Sign-On) data to the currently logged-in user.
 
 ## Hooks
 
-### MiniOrange/SamlCheckMapping/AttributesListener
+### mo_saml_user_attributes
 
-This hook is fired when the plugin has fetched the user attributes from the SAML response. The hook is fired with the fetched attributes as the first argument.
+This hook is fired when the plugin has fetched the user attributes from the SAML response. The hook is fired with the fetched attributes as the first argument. Be aware that the user may not be logged in yet, so the `user_id` might not be available at the time the hook is fired.
 
 ```php
-add_action('MiniOrange/SamlCheckMapping/AttributesListener', function($attributes) {
+add_action('mo_saml_user_attributes', function($attributes) {
     // Do something with the attributes
 });
-```
+``` 
+
+### mo_saml_user_group_name
+
+This hook is fired when the plugin has fetched the user group name. The hook is fired with the `user_id` and `group_name` as arguments.
+
+```php
+add_action('mo_saml_user_group_name', function($user_id, $group_name) {
+    // Do something with the user ID and group name
+});
+``` 
+
+# Default documentation
+
+
 ﻿=== SAML Single Sign On – SSO Login ===
 Contributors: miniOrange
 Donate link: https://plugins.miniorange.com
