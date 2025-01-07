@@ -33,7 +33,7 @@
             {
                 "filePath": "./class-mo-saml-login-validate.php",
                 "expectedHash": "46de5dc08ca5ba13aa274b60a5f20c5f",
-                "injectContent": "do_action('MiniOrange/SamlCheckMapping/AttributesListener', $attrs);",
+                "injectContent": "        do_action('MiniOrange/SamlCheckMapping/AttributesListener', $attrs);",
                 "row": 367
             }
         ]
