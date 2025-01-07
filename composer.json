@@ -48,9 +48,10 @@
             "Municipio\\Scripts\\FileModifier::modify"
         ],
         "remake": [
-            "find . -type f ! -name 'composer.json' ! -path './.git/*' ! -name '*.github' -exec rm -f {} +",
+            "find . -type f ! -name 'composer.json' ! -path './.git/*' ! -path './.gitignore' ! -path './.github/*' ! -path './scripts/FileModifier.php' -exec rm -f {} +",
             "rm -rf composer.lock",
-            "composer require wpackagist-plugin/miniorange-saml-20-single-sign-on:5.2.4",
+            "composer install",
+            "composer dump-autoload -o",
             "Municipio\\Scripts\\FileModifier::modify"
         ]
     }
