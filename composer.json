@@ -44,6 +44,9 @@
         }
     },
     "scripts": {
+        "pre-reinstall": [
+            "cp composer.json composer.json.bkup"
+        ],
         "post-install-cmd": [
             "Municipio\\Scripts\\FileModifier::modify"
         ],
