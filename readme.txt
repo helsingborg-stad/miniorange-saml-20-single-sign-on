@@ -1,4 +1,4 @@
-# MiniOrange - Hookable 
+# MiniOrange SAML Single Sign On - Hookable 
 
 This fork of the MiniOrange plugin adds useful hooks for mapping SSO (Single Sign-On) data to the currently logged-in user.
 
