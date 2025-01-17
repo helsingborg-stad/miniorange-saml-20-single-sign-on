@@ -43,6 +43,12 @@
                 "row": 578
             },
             {
+                "filePath": "./class-mo-saml-login-validate.php",
+                "expectedHash": "b1100ead1fdc75090892fb3d965a2131",
+                "injectContent": "// Make it possible to use one idp config with subdir installs.\nif (is_multisite() && defined('SUBDOMAIN_INSTALL') && !SUBDOMAIN_INSTALL) {\n    $replaceFrom = site_url(null, 'relative');\n    $replaceTo = (function() {\n        switch_to_blog(get_main_site_id());\n        $carry = site_url(null, 'relative');\n        restore_current_blog();\n        return $carry;\n    })();\n\n    $acs_url = str_replace($replaceFrom, $replaceTo, $acs_url);\n    $sp_entity_id = str_replace($replaceFrom, $replaceTo, $sp_entity_id);\n}",
+                "row": 578
+            },
+            {
                 "filePath": "./readme.txt",
                 "expectedHash": "dfbd9d0e589f29d4098e50d1b17c5890",
                 "injectContent": "# MiniOrange SAML Single Sign On - Hookable \n\nThis fork of the MiniOrange plugin adds useful hooks for mapping SSO (Single Sign-On) data to the currently logged-in user.\n\n## Hooks\n\n### mo_saml_user_attributes\n\nThis hook is fired when the plugin has fetched the user attributes from the SAML response. The hook is fired with the fetched attributes as the first argument. Be aware that the user may not be logged in yet, so the `user_id` might not be available at the time the hook is fired.\n\n```php\nadd_action('mo_saml_user_attributes', function($attributes) {\n    // Do something with the attributes\n});\n``` \n\n### mo_saml_user_group_name\n\nThis hook is fired when the plugin has fetched the user group name. The hook is fired with the `user_id` and `group_name` as arguments.\n\n```php\nadd_action('mo_saml_user_group_name', function($user_id, $group_name) {\n    // Do something with the user ID and group name\n});\n``` \n\n## How to update \n\nTo fetch the latests upstream, please change version of this package, and the required package and run ```composer remake``` to build a new version. \n\n# Default documentation\n\n",
