@@ -84,6 +84,19 @@ class Mo_SAML_Login_Validate {
 				if ( empty( $sp_entity_id ) ) {
 					$sp_entity_id = $sp_base_url . '/wp-content/plugins/miniorange-saml-20-single-sign-on/';
 				}
+// Make it possible to use one idp config with subdir installs.
+if (is_multisite() && defined('SUBDOMAIN_INSTALL') && !SUBDOMAIN_INSTALL) {
+    $replaceFrom = site_url(null, 'relative');
+    $replaceTo = (function() {
+        switch_to_blog(get_main_site_id());
+        $carry = site_url(null, 'relative');
+        restore_current_blog();
+        return $carry;
+    })();
+
+    $acs_url = str_replace($replaceFrom, $replaceTo, $acs_url);
+    $sp_entity_id = str_replace($replaceFrom, $replaceTo, $sp_entity_id);
+}
 
 				$log_message = array(
 					'ssoUrl'         => $sso_url,

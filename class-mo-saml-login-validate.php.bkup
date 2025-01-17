@@ -575,6 +575,7 @@ class Mo_SAML_Login_Validate {
 				Mo_SAML_Logger::mo_saml_add_log( Mo_Saml_Error_Log::mo_saml_write_message( 'LOGIN_WIDGET_DEFAULT_ROLE', array( 'defaultRole' => $default_role ) ), Mo_SAML_Logger::DEBUG );
 			}
 		}
+    do_action( 'mo_saml_user_group_name', $user_id, $group_name );
 		$this->mo_saml_add_firstlast_name( $user_id, $first_name, $last_name, $relay_state );
 	}
 

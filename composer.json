@@ -44,9 +44,9 @@
             },
             {
                 "filePath": "./class-mo-saml-login-validate.php",
-                "expectedHash": "b1100ead1fdc75090892fb3d965a2131",
+                "expectedHash": "f55347ad6db45a1c176c45e637d15cb4",
                 "injectContent": "// Make it possible to use one idp config with subdir installs.\nif (is_multisite() && defined('SUBDOMAIN_INSTALL') && !SUBDOMAIN_INSTALL) {\n    $replaceFrom = site_url(null, 'relative');\n    $replaceTo = (function() {\n        switch_to_blog(get_main_site_id());\n        $carry = site_url(null, 'relative');\n        restore_current_blog();\n        return $carry;\n    })();\n\n    $acs_url = str_replace($replaceFrom, $replaceTo, $acs_url);\n    $sp_entity_id = str_replace($replaceFrom, $replaceTo, $sp_entity_id);\n}",
-                "row": 578
+                "row": 87
             },
             {
                 "filePath": "./readme.txt",
