@@ -18,7 +18,7 @@
         }
     ],
     "require": {
-        "wpackagist-plugin/miniorange-saml-20-single-sign-on":"5.2.4"
+        "wpackagist-plugin/miniorange-saml-20-single-sign-on":"5.3.1"
     },
     "autoload": {
         "psr-4": {
