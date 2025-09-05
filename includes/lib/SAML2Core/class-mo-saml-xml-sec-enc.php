@@ -127,11 +127,12 @@ class Mo_SAML_XML_Sec_Enc {
 	 * @param string  $name Name of the Node.
 	 * @param DOMNode $node Node DOM Document.
 	 * @param string  $type Type of the Node.
-	 * @throws Exception Throws expections if the type of node is not DOMNode.
+	 * @throws \Mo_SAML_XMLSecLibs_Processing_Exception Throws expections if the type of node is not DOMNode.
 	 */
 	public function mo_saml_add_reference( $name, $node, $type ) {
 		if ( ! $node instanceof DOMNode ) {
-			throw new Exception( '$node is not of type DOMNode' );
+			\Mo_SAML_Logger::mo_saml_add_log( '$node is not of type DOMNode', \Mo_SAML_Logger::ERROR );
+			throw new \Mo_SAML_XMLSecLibs_Processing_Exception( '$node is not of type DOMNode' );
 		}
 		$curencdoc = $this->encdoc;
 		$this->mo_saml_reset_template();
@@ -164,22 +165,26 @@ class Mo_SAML_XML_Sec_Enc {
 	 * @param Mo_SAML_XML_Security_Key $obj_key  The encryption key and algorithm.
 	 * @param bool                     $replace Whether the encrypted node should be replaced in the original tree. Default is true.
 	 * @return DOMElement  The <xenc:EncryptedData>-element.
-	 * @throws Exception Throws expections if the node to be encrypted is not set or the key is not valid.
+	 * @throws \Mo_SAML_XMLSecLibs_Processing_Exception Throws expections if the node to be encrypted is not set or the key is not valid.
 	 */
 	public function mo_saml_encrypt_node( $obj_key, $replace = true ) {
 		$data = '';
 		if ( empty( $this->raw_node ) ) {
-			throw new Exception( 'Node to encrypt has not been set' );
+			\Mo_SAML_Logger::mo_saml_add_log( 'Node to encrypt has not been set', \Mo_SAML_Logger::ERROR );
+			throw new \Mo_SAML_XMLSecLibs_Processing_Exception( 'Node to encrypt has not been set' );
+
 		}
 		if ( ! $obj_key instanceof Mo_SAML_XML_Security_Key ) {
-			throw new Exception( 'Invalid Key' );
+			\Mo_SAML_Logger::mo_saml_add_log( 'Invalid Key', \Mo_SAML_Logger::ERROR );
+			throw new \Mo_SAML_XMLSecLibs_Processing_Exception( 'Invalid Key' );
 		}
 		$doc          = $this->raw_node->ownerDocument;
 		$x_path       = new DOMXPath( $this->encdoc );
 		$obj_list     = $x_path->query( '/xenc:EncryptedData/xenc:CipherData/xenc:CipherValue' );
 		$cipher_value = $obj_list->item( 0 );
 		if ( null === $cipher_value ) {
-			throw new Exception( 'Error locating CipherValue element within template' );
+			\Mo_SAML_Logger::mo_saml_add_log( 'Error locating CipherValue element within template', \Mo_SAML_Logger::ERROR );
+			throw new \Mo_SAML_XMLSecLibs_Processing_Exception( 'Error locating CipherValue element within template' );
 		}
 		switch ( $this->type ) {
 			case ( self::ELEMENT ):
@@ -194,7 +199,8 @@ class Mo_SAML_XML_Sec_Enc {
 				$this->encdoc->documentElement->setAttribute( 'Type', self::CONTENT );
 				break;
 			default:
-				throw new Exception( 'Type is currently not supported' );
+				\Mo_SAML_Logger::mo_saml_add_log( 'Type is currently not supported', \Mo_SAML_Logger::ERROR );
+				throw new \Mo_SAML_XMLSecLibs_Processing_Exception( 'Type is currently not supported' );
 		}
 
 		$enc_method = $this->encdoc->documentElement->appendChild( $this->encdoc->createElementNS( self::XMLENCNS, 'xenc:EncryptionMethod' ) );
@@ -232,7 +238,7 @@ class Mo_SAML_XML_Sec_Enc {
 	 * Encrypts the references.
 	 *
 	 * @param Mo_SAML_XML_Security_Key $obj_key instance of MOXMLSecurityKey.
-	 * @throws Exception $e exection.
+	 * @throws \Mo_SAML_XMLSecLibs_Processing_Exception $e exception.
 	 */
 	public function mo_saml_encrypt_references( $obj_key ) {
 		$cur_raw_node = $this->raw_node;
@@ -244,7 +250,7 @@ class Mo_SAML_XML_Sec_Enc {
 			try {
 				$enc_node                             = $this->mo_saml_encrypt_node( $obj_key );
 				$this->references[ $name ]['encnode'] = $enc_node;
-			} catch ( Exception $e ) {
+			} catch ( \Mo_SAML_XMLSecLibs_Processing_Exception $e ) {
 				$this->raw_node = $cur_raw_node;
 				$this->type     = $cur_type;
 				throw $e;
@@ -258,11 +264,12 @@ class Mo_SAML_XML_Sec_Enc {
 	 * Retrieve the CipherValue text from this encrypted node.
 	 *
 	 * @return string|null  The Ciphervalue text, or null if no CipherValue is found.
-	 * @throws Exception Throws expections if the node is not set.
+	 * @throws \Mo_SAML_XMLSecLibs_Processing_Exception Throws expections if the node is not set.
 	 */
 	public function mo_saml_get_cipher_value() {
 		if ( empty( $this->raw_node ) ) {
-			throw new Exception( 'Node to decrypt has not been set' );
+			\Mo_SAML_Logger::mo_saml_add_log( 'Node to decrypt has not been set', \Mo_SAML_Logger::ERROR );
+			throw new \Mo_SAML_XMLSecLibs_Processing_Exception( 'Node to decrypt has not been set' );
 		}
 
 		$doc    = $this->raw_node->ownerDocument;
@@ -290,12 +297,13 @@ class Mo_SAML_XML_Sec_Enc {
 	 *
 	 * @param Mo_SAML_XML_Security_Key $obj_key  The decryption key that should be used when decrypting the node.
 	 * @param boolean                  $replace Whether we should replace the encrypted node in the XML document with the decrypted data. The default is true.
-	 * @throws Exception Throws expections if encrypted data is not located.
+	 * @throws \Mo_SAML_XMLSecLibs_Processing_Exception Throws expections if encrypted data is not located.
 	 * @return string|DOMElement  The decrypted data.
 	 */
 	public function mo_saml_decrypt_node( $obj_key, $replace = true ) {
 		if ( ! $obj_key instanceof Mo_SAML_XML_Security_Key ) {
-			throw new Exception( 'Invalid Key' );
+			\Mo_SAML_Logger::mo_saml_add_log( 'Invalid Key', \Mo_SAML_Logger::ERROR );
+			throw new \Mo_SAML_XMLSecLibs_Processing_Exception( 'Invalid Key' );
 		}
 
 		$encrypted_data = $this->mo_saml_get_cipher_value();
@@ -331,7 +339,8 @@ class Mo_SAML_XML_Sec_Enc {
 				return $decrypted;
 			}
 		} else {
-			throw new Exception( 'Cannot locate encrypted data' );
+			\Mo_SAML_Logger::mo_saml_add_log( 'Cannot locate encrypted data', \Mo_SAML_Logger::ERROR );
+			throw new \Mo_SAML_XMLSecLibs_Processing_Exception( 'Cannot locate encrypted data' );
 		}
 	}
 
@@ -341,11 +350,12 @@ class Mo_SAML_XML_Sec_Enc {
 	 * @param Mo_SAML_XML_Security_Key $src_key source key.
 	 * @param Mo_SAML_XML_Security_Key $raw_key raw key.
 	 * @param bool                     $append append.
-	 * @throws Exception Throws expections if the key is invalid.
+	 * @throws \Mo_SAML_XMLSecLibs_Processing_Exception Throws expections if the key is invalid.
 	 */
 	public function mo_saml_encrypt_key( $src_key, $raw_key, $append = true ) {
 		if ( ( ! $src_key instanceof Mo_SAML_XML_Security_Key ) || ( ! $raw_key instanceof Mo_SAML_XML_Security_Key ) ) {
-			throw new Exception( 'Invalid Key' );
+			\Mo_SAML_Logger::mo_saml_add_log( 'Invalid Key', \Mo_SAML_Logger::ERROR );
+			throw new \Mo_SAML_XMLSecLibs_Processing_Exception( 'Invalid Key' );
 		}
 		// phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.obfuscation_base64_encode -- Working on the source key which is supposed to be encoded.
 		$str_enc_key = base64_encode( $src_key->mo_saml_encrypt_data( $raw_key->key ) );
@@ -381,14 +391,16 @@ class Mo_SAML_XML_Sec_Enc {
 	 *
 	 * @param Mo_SAML_XML_Security_Key $enc_key Encryption key.
 	 * @return DOMElement|string
-	 * @throws Exception Throws expections if key is not encrypted and if key has some missing data.
+	 * @throws \Mo_SAML_XMLSecLibs_Processing_Exception Throws expections if key is not encrypted and if key has some missing data.
 	 */
 	public function mo_saml_decrypt_key( $enc_key ) {
 		if ( ! $enc_key->is_encrypted ) {
-			throw new Exception( 'Key is not Encrypted' );
+			\Mo_SAML_Logger::mo_saml_add_log( 'Key is not Encrypted', \Mo_SAML_Logger::ERROR );
+			throw new \Mo_SAML_XMLSecLibs_Processing_Exception( 'Key is not Encrypted' );
 		}
 		if ( empty( $enc_key->key ) ) {
-			throw new Exception( 'Key is missing data to perform the decryption' );
+			\Mo_SAML_Logger::mo_saml_add_log( 'Key is missing data to perform the decryption', \Mo_SAML_Logger::ERROR );
+			throw new \Mo_SAML_XMLSecLibs_Processing_Exception( 'Key is missing data to perform the decryption' );
 		}
 		return $this->mo_saml_decrypt_node( $enc_key, false );
 	}
@@ -455,7 +467,7 @@ class Mo_SAML_XML_Sec_Enc {
 	 * @param null|Mo_SAML_XML_Security_Key $obj_base_key object base key.
 	 * @param null|DOMNode                  $node Node DOM Document.
 	 * @return null|Mo_SAML_XML_Security_Key intance of the MOXMLSecurityKey.
-	 * @throws Exception Throws expections if the encrypted key is not located by ID.
+	 * @throws \Mo_SAML_XMLSecLibs_Processing_Exception Throws expections if the encrypted key is not located by ID.
 	 */
 	public static function mo_saml_staticlocate_key_info( $obj_base_key = null, $node = null ) {
 		if ( empty( $node ) || ( ! $node instanceof DOMNode ) ) {
@@ -479,81 +491,80 @@ class Mo_SAML_XML_Sec_Enc {
 		}
 		// phpcs:ignore WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase -- Working with PHP DOMElement Attrbutes.
 		foreach ( $encmeth->childNodes as $child ) {
-			try {
 			// phpcs:ignore WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase -- Working with PHP DOMElement Attributes.
-				switch ( $child->localName ) {
-					case 'KeyName':
-						if ( ! empty( $obj_base_key ) ) {
-							// phpcs:ignore WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase -- Working with PHP DOMElement Attributes.
-							$obj_base_key->name = $child->nodeValue;
-						}
-						break;
-					case 'KeyValue':
+			switch ( $child->localName ) {
+				case 'KeyName':
+					if ( ! empty( $obj_base_key ) ) {
 						// phpcs:ignore WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase -- Working with PHP DOMElement Attributes.
-						foreach ( $child->childNodes as $keyval ) {
-							// phpcs:ignore WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase -- Working with PHP DOMElement Attributes.
-							switch ( $keyval->localName ) {
-								case 'DSAKeyValue':
-									throw new Exception( 'DSAKeyValue currently not supported' );
-								case 'RSAKeyValue':
-									$modulus      = null;
-									$exponent     = null;
-									$modulus_node = $keyval->getElementsByTagName( 'Modulus' )->item( 0 );
-									if ( $modulus_node ) {
-										// phpcs:ignore WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase, WordPress.PHP.DiscouragedPHPFunctions.obfuscation_base64_decode -- Working with PHP DOMElement Attributes.
-										$modulus = base64_decode( $modulus_node->nodeValue );
-									}
-									$exponent_node = $keyval->getElementsByTagName( 'Exponent' )->item( 0 );
-									if ( $exponent_node ) {
-										// phpcs:ignore WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase, WordPress.PHP.DiscouragedPHPFunctions.obfuscation_base64_decode -- Working with PHP DOMElement Attributes.
-										$exponent = base64_decode( $exponent_node->nodeValue );
-									}
-									if ( empty( $modulus ) || empty( $exponent ) ) {
-										throw new Exception( 'Missing Modulus or Exponent' );
-									}
-									$public_key = Mo_SAML_XML_Security_Key::mo_saml_convert_rsa( $modulus, $exponent );
-									$obj_base_key->mo_saml_load_key( $public_key );
-									break;
-							}
+						$obj_base_key->name = $child->nodeValue;
+					}
+					break;
+				case 'KeyValue':
+					// phpcs:ignore WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase -- Working with PHP DOMElement Attributes.
+					foreach ( $child->childNodes as $keyval ) {
+						// phpcs:ignore WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase -- Working with PHP DOMElement Attributes.
+						switch ( $keyval->localName ) {
+							case 'DSAKeyValue':
+								\Mo_SAML_Logger::mo_saml_add_log( 'DSAKeyValue currently not supported', \Mo_SAML_Logger::ERROR );
+								throw new \Mo_SAML_XMLSecLibs_Processing_Exception( 'DSAKeyValue currently not supported' );
+							case 'RSAKeyValue':
+								$modulus      = null;
+								$exponent     = null;
+								$modulus_node = $keyval->getElementsByTagName( 'Modulus' )->item( 0 );
+								if ( $modulus_node ) {
+									// phpcs:ignore WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase, WordPress.PHP.DiscouragedPHPFunctions.obfuscation_base64_decode -- Working with PHP DOMElement Attributes.
+									$modulus = base64_decode( $modulus_node->nodeValue );
+								}
+								$exponent_node = $keyval->getElementsByTagName( 'Exponent' )->item( 0 );
+								if ( $exponent_node ) {
+									// phpcs:ignore WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase, WordPress.PHP.DiscouragedPHPFunctions.obfuscation_base64_decode -- Working with PHP DOMElement Attributes.
+									$exponent = base64_decode( $exponent_node->nodeValue );
+								}
+								if ( empty( $modulus ) || empty( $exponent ) ) {
+									\Mo_SAML_Logger::mo_saml_add_log( 'Missing Modulus or Exponent', \Mo_SAML_Logger::ERROR );
+									throw new \Mo_SAML_XMLSecLibs_Processing_Exception( 'Missing Modulus or Exponent' );
+								}
+								$public_key = Mo_SAML_XML_Security_Key::mo_saml_convert_rsa( $modulus, $exponent );
+								$obj_base_key->mo_saml_load_key( $public_key );
+								break;
 						}
+					}
+					break;
+				case 'RetrievalMethod':
+					$type = $child->getAttribute( 'Type' );
+					if ( 'http://www.w3.org/2001/04/xmlenc#EncryptedKey' !== $type ) {
+						/* Unsupported key type. */
 						break;
-					case 'RetrievalMethod':
-						$type = $child->getAttribute( 'Type' );
-						if ( 'http://www.w3.org/2001/04/xmlenc#EncryptedKey' !== $type ) {
-							/* Unsupported key type. */
-							break;
-						}
-						$uri = $child->getAttribute( 'URI' );
-						if ( '#' !== $uri[0] ) {
-							/* URI not a reference - unsupported. */
-							break;
-						}
-						$id = substr( $uri, 1 );
-
-						$query       = '//xmlsecenc:EncryptedKey[@Id="' . Mo_SAML_XPath::mo_saml_filter_attr_value( $id, Mo_SAML_XPath::DOUBLE_QUOTE ) . '"]';
-						$key_element = $xpath->query( $query )->item( 0 );
-						if ( ! $key_element ) {
-							throw new Exception( "Unable to locate EncryptedKey with @Id='$id'." );
-						}
-
-						return Mo_SAML_XML_Security_Key::mo_saml_from_encrypted_key_element( $key_element );
-					// phpcs:ignore PSR2.ControlStructures.SwitchDeclaration.TerminatingComment -- Show error instead of return.
-					case 'EncryptedKey':
-						return Mo_SAML_XML_Security_Key::mo_saml_from_encrypted_key_element( $child );
-					case 'X509Data':
-						$x509cert_nodes = $child->getElementsByTagName( 'X509Certificate' );
-						if ( $x509cert_nodes ) {
-							if ( $x509cert_nodes->length > 0 ) {
-								$x509cert = $x509cert_nodes->item( 0 )->textContent;
-								$x509cert = str_replace( array( "\r", "\n", ' ' ), '', $x509cert );
-								$x509cert = "-----BEGIN CERTIFICATE-----\n" . chunk_split( $x509cert, 64, "\n" ) . "-----END CERTIFICATE-----\n";
-								$obj_base_key->mo_saml_load_key( $x509cert, false, true );
-							}
-						}
+					}
+					$uri = $child->getAttribute( 'URI' );
+					if ( '#' !== $uri[0] ) {
+						/* URI not a reference - unsupported. */
 						break;
-				}
-			} catch ( Exception $exception ) {
-				wp_die( 'We could not sign you in. Please contact your administrator.', 'Invalid Key' );
+					}
+					$id = substr( $uri, 1 );
+
+					$query       = '//xmlsecenc:EncryptedKey[@Id="' . Mo_SAML_XPath::mo_saml_filter_attr_value( $id, Mo_SAML_XPath::DOUBLE_QUOTE ) . '"]';
+					$key_element = $xpath->query( $query )->item( 0 );
+					if ( ! $key_element ) {
+						\Mo_SAML_Logger::mo_saml_add_log( 'Unable to locate EncryptedKey with @Id=' . $id, \Mo_SAML_Logger::ERROR );
+						throw new \Mo_SAML_XMLSecLibs_Processing_Exception( sprintf( 'Unable to locate EncryptedKey with @Id=%s.', esc_html( $id ) ) );
+					}
+
+					return Mo_SAML_XML_Security_Key::mo_saml_from_encrypted_key_element( $key_element );
+				// phpcs:ignore PSR2.ControlStructures.SwitchDeclaration.TerminatingComment -- Show error instead of return.
+				case 'EncryptedKey':
+					return Mo_SAML_XML_Security_Key::mo_saml_from_encrypted_key_element( $child );
+				case 'X509Data':
+					$x509cert_nodes = $child->getElementsByTagName( 'X509Certificate' );
+					if ( $x509cert_nodes ) {
+						if ( $x509cert_nodes->length > 0 ) {
+							$x509cert = $x509cert_nodes->item( 0 )->textContent;
+							$x509cert = str_replace( array( "\r", "\n", ' ' ), '', $x509cert );
+							$x509cert = "-----BEGIN CERTIFICATE-----\n" . chunk_split( $x509cert, 64, "\n" ) . "-----END CERTIFICATE-----\n";
+							$obj_base_key->mo_saml_load_key( $x509cert, false, true );
+						}
+					}
+					break;
 			}
 		}
 		return $obj_base_key;

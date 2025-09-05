@@ -124,19 +124,25 @@ function mo_saml_display_welcome_page() {
 function mo_saml_display_plugin_header() {
 
 	$sandbox_url = 'https://sandbox.miniorange.com/?mo_plugin=mo_saml&referer=' . site_url();
+	$faq_url     = 'https://faq.miniorange.com/kb/saml-single-sign-on/';
 	$version     = 'v' . Mo_Saml_Options_Plugin_Constants::VERSION;
 	?>
 	<div class="wrap shadow-cstm mo-saml-bootstrap-p-3 mo-saml-bootstrap-me-0 mo-saml-bootstrap-mt-0 mo-saml-margin-left">
-		<div class="mo-saml-bootstrap-row align-items-top">
-			<div class="mo-saml-bootstrap-col-md-5 mo-saml-bootstrap-h3 mo-saml-bootstrap-ps-4">
+		<div class="mo-saml-bootstrap-row align-items-top mo-saml-justify-between">
+			<div class="mo-saml-bootstrap-h3 mo-saml-bootstrap-ps-4 width-max-content">
 				<?php esc_html_e( 'miniOrange SSO using SAML 2.0', 'miniorange-saml-20-single-sign-on' ); ?>
 				<span class="mo_saml_version_display"> <?php echo '[ ' . esc_html( $version ) . ' ]'; ?> </span>
 			</div>
-			<div class="mo-saml-bootstrap-col-md-4 mo-saml-bootstrap-text-end mo-saml-bootstrap-d-flex mo-saml-bootstrap-align-items-center">
-				<a class="mo-saml-bootstrap-text-white mo-saml-bootstrap-ps-4 mo-saml-bootstrap-pe-4 mo-saml-bootstrap-pt-2 mo-saml-bootstrap-pb-2 btn-prem prem-btn-cstm" target="_blank" href="<?php echo esc_url( $sandbox_url ); ?>"><?php esc_html_e( 'Try Paid Features', 'miniorange-saml-20-single-sign-on' ); ?></a>
-			</div>
-			<div class="mo-saml-bootstrap-col-md-3 mo-saml-bootstrap-text-end mo-saml-bootstrap-d-flex mo-saml-bootstrap-align-items-center mo-saml-bootstrap-justify-content-end">
-				<a id="license_upgrade" class="mo-saml-bootstrap-text-white mo-saml-bootstrap-ps-4 mo-saml-bootstrap-pe-4 mo-saml-bootstrap-pt-2 mo-saml-bootstrap-pb-2 btn-prem prem-btn-cstm" href="<?php echo esc_url( Mo_Saml_External_Links::PRICING_PAGE ); ?>" target="_blank"><?php esc_html_e( 'Premium Plans | Upgrade Now', 'miniorange-saml-20-single-sign-on' ); ?></a>
+			<div class="mo-saml-bootstrap-col-md-7 mo-saml-bootstrap-d-flex mo-saml-bootstrap-justify-content-end">
+				<a class="mo-saml-bootstrap-text-white btn-prem prem-btn-cstm mo-saml-bootstrap-me-3" target="_blank" href="<?php echo esc_url( $sandbox_url ); ?>">
+					<?php esc_html_e( 'Try Paid Features', 'miniorange-saml-20-single-sign-on' ); ?>
+				</a>
+				<a class="mo-saml-bootstrap-text-white btn-prem prem-btn-cstm mo-saml-bootstrap-me-3" target="_blank" href="<?php echo esc_url( $faq_url ); ?>">
+					<?php esc_html_e( 'FAQs', 'miniorange-saml-20-single-sign-on' ); ?>
+				</a>
+				<a id="license_upgrade" class="mo-saml-bootstrap-text-white btn-prem prem-btn-cstm" href="<?php echo esc_url( Mo_Saml_External_Links::PRICING_PAGE ); ?>" target="_blank">
+					<?php esc_html_e( 'Upgrade Now', 'miniorange-saml-20-single-sign-on' ); ?>
+				</a>
 			</div>
 		</div>
 	</div>
@@ -153,7 +159,7 @@ function mo_saml_display_plugin_tabs( $active_tab ) {
 	?>
 	<div class="bg-main-cstm mo-saml-bootstrap-pb-4 mo-saml-margin-left" id="container">
 		<span id="mo-saml-message"></span>
-		<div id="mo-saml-tabs" class="mo-saml-bootstrap-d-flex mo-saml-bootstrap-text-center mo-saml-bootstrap-pt-3 mo-saml-bootstrap-border-bottom mo_saml_padding_left_2">
+		<div id="mo-saml-tabs" class="mo-saml-tabs mo-saml-bootstrap-d-flex mo-saml-bootstrap-text-center mo-saml-bootstrap-pt-3 mo-saml-bootstrap-border-bottom mo_saml_padding_left_2">
 			<a id="sp-setup-tab" class="mo-saml-nav-tab-cstm <?php echo esc_html( ( 'save' === $active_tab ? 'mo-saml-nav-tab-active' : '' ) ); ?>" href="<?php echo isset( $_SERVER['REQUEST_URI'] ) ? esc_url( add_query_arg( array( 'tab' => 'save' ), esc_url_raw( wp_unslash( $_SERVER['REQUEST_URI'] ) ) ) ) : ''; ?>"><?php esc_html_e( 'Service Provider Setup', 'miniorange-saml-20-single-sign-on' ); ?></a>
 			<a id="sp-meta-tab" class="mo-saml-nav-tab-cstm <?php echo esc_html( ( 'config' === $active_tab ? 'mo-saml-nav-tab-active' : '' ) ); ?>" href="<?php echo isset( $_SERVER['REQUEST_URI'] ) ? esc_url( add_query_arg( array( 'tab' => 'config' ), esc_url_raw( wp_unslash( $_SERVER['REQUEST_URI'] ) ) ) ) : ''; ?>"><?php esc_html_e( 'Service Provider Metadata', 'miniorange-saml-20-single-sign-on' ); ?></a>
 			<a id="attr-role-tab" class="mo-saml-nav-tab-cstm <?php echo esc_html( ( 'opt' === $active_tab ? 'mo-saml-nav-tab-active' : '' ) ); ?>" href="<?php echo isset( $_SERVER['REQUEST_URI'] ) ? esc_url( add_query_arg( array( 'tab' => 'opt' ), esc_url_raw( wp_unslash( $_SERVER['REQUEST_URI'] ) ) ) ) : ''; ?>"><?php esc_html_e( 'Attribute/Role Mapping', 'miniorange-saml-20-single-sign-on' ); ?></a>

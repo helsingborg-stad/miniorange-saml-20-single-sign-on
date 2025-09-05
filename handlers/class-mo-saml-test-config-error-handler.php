@@ -46,24 +46,15 @@ class Mo_Saml_Test_Config_Error_Handler {
 
 		switch ( $error_type ) {
 			case 'test_config_error_wpsamlerr004':
-				$error_code                = Mo_Saml_Options_Enum_Error_Codes::$error_codes['WPSAMLERR004'];
-				$saml_required_certificate = get_option( Mo_Saml_Sso_Constants::MO_SAML_REQUIRED_CERTIFICATE );
-				$pem                       = '-----BEGIN CERTIFICATE-----<br>' . chunk_split( $saml_required_certificate, 64 ) . '<br>-----END CERTIFICATE-----';
-				$display_metadata_mismatch = '<p><strong>Certificate found in SAML Response: </strong><font face="Courier New";font-size:10pt><br><br>' . $pem . '</p></font>';
+				$error_code = Mo_Saml_Options_Enum_Error_Codes::$error_codes['WPSAMLERR004'];
 				break;
 			case 'test_config_error_wpsamlerr012':
-				$error_code                = Mo_Saml_Options_Enum_Error_Codes::$error_codes['WPSAMLERR012'];
-				$display_metadata_mismatch = '';
+				$error_code = Mo_Saml_Options_Enum_Error_Codes::$error_codes['WPSAMLERR012'];
 				break;
 			case 'test_config_error_wpsamlerr010':
-				$error_code                 = Mo_Saml_Options_Enum_Error_Codes::$error_codes['WPSAMLERR010'];
-				$saml_required_issuer       = get_option( Mo_Saml_Sso_Constants::MO_SAML_REQUIRED_ISSUER );
-				$issuer_to_validate_against = get_option( Mo_Saml_Sso_Constants::MO_SAML_VALID_AGAINST_ENTITY_ID );
-				$display_metadata_mismatch  = '<p><strong>Entity ID in SAML Response: </strong>' . esc_html( $saml_required_issuer ) . '<p>
-				<p><strong>Entity ID configured in the plugin: </strong>' . esc_html( $issuer_to_validate_against ) . '</p>';
-				delete_option( Mo_Saml_Sso_Constants::MO_SAML_VALID_AGAINST_ENTITY_ID );
+				$error_code = Mo_Saml_Options_Enum_Error_Codes::$error_codes['WPSAMLERR010'];
 				break;
 		}
-		mo_saml_display_test_config_error_page( $error_code, $display_metadata_mismatch );
+		mo_saml_display_test_config_error_page( $error_code );
 	}
 }

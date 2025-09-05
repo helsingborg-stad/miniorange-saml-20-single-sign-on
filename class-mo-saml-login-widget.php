@@ -83,7 +83,7 @@ class Mo_SAML_Login_Widget extends WP_Widget {
 			$wid_title = $instance['wid_title'];
 		}
 		echo '
-		<p><label for="' . esc_attr( $this->get_field_id( 'wid_title' ) ) . ' ">' . esc_html_e( 'Title:' , 'miniorange-saml-20-single-sign-on') . ' </label>
+		<p><label for="' . esc_attr( $this->get_field_id( 'wid_title' ) ) . ' ">' . esc_html_e( 'Title:', 'miniorange-saml-20-single-sign-on' ) . ' </label>
 		<input class="widefat" id="' . esc_attr( $this->get_field_id( 'wid_title' ) ) . '" name="' . esc_attr( $this->get_field_name( 'wid_title' ) ) . '" type="text" value="' . esc_attr( $wid_title ) . '" />
 		</p>';
 	}

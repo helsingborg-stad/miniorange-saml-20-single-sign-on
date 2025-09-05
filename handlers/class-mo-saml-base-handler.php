@@ -101,4 +101,25 @@ class Mo_SAML_Base_Handler {
 				break;
 		}
 	}
+
+	/**
+	 * A wrapper function for saving the form settings within the plugin.
+	 *
+	 * @return void
+	 */
+	public static function mo_saml_handle_save_settings() {
+		try {
+			self::mo_saml_save_settings_handler();
+		} catch ( Mo_SAML_Metadata_Reader_Exception $ex ) {
+			Mo_Saml_Exception_Handler::mo_saml_throw_exception( $ex, true );
+		} catch ( Mo_SAML_DOM_Extension_Disabled_Exception $ex ) {
+			Mo_Saml_Exception_Handler::mo_saml_throw_exception( $ex, true );
+		} catch ( Mo_SAML_Invalid_XML_Exception $ex ) {
+			Mo_Saml_Exception_Handler::mo_saml_throw_exception( $ex, true );
+		} catch ( Exception $ex ) {
+			Mo_SAML_Logger::mo_saml_add_log( $ex->getMessage(), \Mo_SAML_Logger::ERROR );
+			update_option( 'mo_saml_message', 'An error occurred while processing the form. Please try again or contact support if the issue persists.' );
+			Mo_SAML_Utilities::mo_saml_show_error_message();
+		}
+	}
 }

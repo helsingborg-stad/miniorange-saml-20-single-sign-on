@@ -220,7 +220,7 @@ class Mo_SAML_Utilities {
 				mo_saml_display_test_config_error_page( $error_code );
 				exit;
 			}
-			self::mo_saml_die( $error_code );
+			mo_saml_display_end_user_error_message_with_code( $error_code );
 		}
 	}
 
@@ -268,6 +268,7 @@ class Mo_SAML_Utilities {
 	 * Converts Date to Timestamp.
 	 *
 	 * @param  mixed $time Contains time value.
+	 * @throws Mo_SAML_Invalid_Assertion_Exception For invalid SAML2 timestamp.
 	 * @return string
 	 */
 	public static function mo_saml_xs_date_time_to_timestamp( $time ) {
@@ -276,8 +277,8 @@ class Mo_SAML_Utilities {
 		// We use a very strict regex to parse the timestamp.
 		$regex = '/^(\\d\\d\\d\\d)-(\\d\\d)-(\\d\\d)T(\\d\\d):(\\d\\d):(\\d\\d)(?:\\.\\d+)?Z$/D';
 		if ( preg_match( $regex, $time, $matches ) === 0 ) {
-			printf( 'Invalid SAML2 timestamp passed to xsDateTimeToTimestamp: ' . esc_html( $time ) );
-			exit;
+			Mo_SAML_Logger::mo_saml_add_log( 'Invalid SAML2 timestamp passed to xsDateTimeToTimestamp', Mo_SAML_Logger::ERROR );
+			throw new Mo_SAML_Invalid_Assertion_Exception( 'Invalid SAML2 timestamp passed to xsDateTimeToTimestamp: ' . esc_html( $time ) );
 		}
 
 		// Extract the different components of the time from the  matches in the regex.
@@ -321,6 +322,7 @@ class Mo_SAML_Utilities {
 	 * Validate the SAML Response.
 	 *
 	 * @param  DOMElement $root Instance of DOMElement.
+	 * @throws Mo_SAML_Invalid_Assertion_Exception For more than one signature element in root.
 	 * @return array|bool
 	 */
 	public static function mo_saml_validate_element( DOMElement $root ) {
@@ -339,23 +341,19 @@ class Mo_SAML_Utilities {
 			/* We don't have a signature element to validate. */
 			return false;
 		} elseif ( $signature_length > 1 ) {
-			printf( 'XMLSec: more than one signature element in root.' );
-			exit;
+			Mo_SAML_Logger::mo_saml_add_log( 'XMLSec: more than one signature element in root', Mo_SAML_Logger::ERROR );
+			throw new Mo_SAML_Invalid_Assertion_Exception( 'XMLSec: more than one signature element in root.' );
 		}
 
 		$signature_element          = $signature_element[0];
 		$obj_xml_sec_dsig->sig_node = $signature_element;
 
-		try {
-			/* Canonicalize the XMLDSig SignedInfo element in the message. */
-			$obj_xml_sec_dsig->canonicalize_signed_info();
-			/* Validate referenced xml nodes. */
-			if ( ! $obj_xml_sec_dsig->validate_reference() ) {
-				printf( 'XMLSec: digest validation failed' );
-				exit;
-			}
-		} catch ( Exception $exception ) {
-			wp_die( 'We could not sign you in. Please contact your administrator.', 'Invalid SAML Response' );
+		/* Canonicalize the XMLDSig SignedInfo element in the message. */
+		$obj_xml_sec_dsig->canonicalize_signed_info();
+		/* Validate referenced xml nodes. */
+		if ( ! $obj_xml_sec_dsig->validate_reference() ) {
+			Mo_SAML_Logger::mo_saml_add_log( 'XMLSec: digest validation failed', Mo_SAML_Logger::ERROR );
+			throw new Mo_SAML_Invalid_Assertion_Exception( 'XMLSec: digest validation failed.' );
 		}
 
 		/* Check that $root is one of the signed nodes. */
@@ -373,8 +371,8 @@ class Mo_SAML_Utilities {
 		}
 
 		if ( ! $root_signed ) {
-			printf( 'XMLSec: The root element is not signed.' );
-			exit;
+			Mo_SAML_Logger::mo_saml_add_log( 'XMLSec: The root element is not signed', Mo_SAML_Logger::ERROR );
+			throw new Mo_SAML_Invalid_Assertion_Exception( 'XMLSec: The root element is not signed.' );
 		}
 
 		/* Now we extract all available X509 certificates in the signature element. */
@@ -399,6 +397,7 @@ class Mo_SAML_Utilities {
 	 *
 	 * @param  array                    $info Contains the signature Data.
 	 * @param  Mo_SAML_XML_Security_Key $key Used to verify the signature.
+	 * @throws Mo_SAML_Invalid_Assertion_Exception For missing SignatureMethod element.
 	 * @return void
 	 */
 	public static function mo_saml_validate_signature( array $info, Mo_SAML_XML_Security_Key $key ) {
@@ -406,13 +405,13 @@ class Mo_SAML_Utilities {
 
 		$sig_method = self::mo_saml_xp_query( $obj_xml_sec_dsig->sig_node, './ds:SignedInfo/ds:SignatureMethod' );
 		if ( empty( $sig_method ) ) {
-			printf( 'Missing SignatureMethod element' );
-			exit();
+			Mo_SAML_Logger::mo_saml_add_log( 'Missing SignatureMethod element', Mo_SAML_Logger::ERROR );
+			throw new Mo_SAML_Invalid_Assertion_Exception( 'Missing SignatureMethod element' );
 		}
 		$sig_method = $sig_method[0];
 		if ( ! $sig_method->hasAttribute( 'Algorithm' ) ) {
-			printf( 'Missing Algorithm-attribute on SignatureMethod element.' );
-			exit;
+			Mo_SAML_Logger::mo_saml_add_log( 'Missing Algorithm-attribute on SignatureMethod element', Mo_SAML_Logger::ERROR );
+			throw new Mo_SAML_Invalid_Assertion_Exception( 'Missing Algorithm-attribute on SignatureMethod element.' );
 		}
 		$algo = $sig_method->getAttribute( 'Algorithm' );
 
@@ -422,8 +421,8 @@ class Mo_SAML_Utilities {
 
 		/* Check the signature. */
 		if ( ! $obj_xml_sec_dsig->verify( $key ) ) {
-			printf( 'Unable to validate Signature' );
-			exit;
+			Mo_SAML_Logger::mo_saml_add_log( 'Unable to validate Signature', Mo_SAML_Logger::ERROR );
+			throw new Mo_SAML_Invalid_Assertion_Exception( 'Unable to validate Signature' );
 		}
 	}
 
@@ -433,6 +432,7 @@ class Mo_SAML_Utilities {
 	 * @param  Mo_SAML_XML_Security_Key $key Instance of MoXMLSecurityKey.
 	 * @param  string                   $algorithm Contains Algorithm.
 	 * @param  string                   $type Algorithm type.
+	 * @throws Mo_SAML_Invalid_Assertion_Exception For missing key in public key details.
 	 * @return Object
 	 */
 	public static function mo_saml_cast_key( Mo_SAML_XML_Security_Key $key, $algorithm, $type = 'public' ) {
@@ -443,20 +443,16 @@ class Mo_SAML_Utilities {
 
 		$key_info = openssl_pkey_get_details( $key->key );
 		if ( false === $key_info ) {
-			printf( 'Unable to get key details from XMLSecurityKey.' );
-			exit;
+			Mo_SAML_Logger::mo_saml_add_log( 'Unable to get key details from XMLSecurityKey', Mo_SAML_Logger::ERROR );
+			throw new Mo_SAML_Invalid_Assertion_Exception( 'Unable to get key details from XMLSecurityKey.' );
 		}
 		if ( ! isset( $key_info['key'] ) ) {
-			printf( 'Missing key in public key details.' );
-			exit;
+			Mo_SAML_Logger::mo_saml_add_log( 'Missing key in public key details', Mo_SAML_Logger::ERROR );
+			throw new Mo_SAML_Invalid_Assertion_Exception( 'Missing key in public key details.' );
 		}
 
 		$new_key = new Mo_SAML_XML_Security_Key( $algorithm, array( 'type' => $type ) );
-		try {
-			$new_key->mo_saml_load_key( $key_info['key'] );
-		} catch ( Exception $exception ) {
-			wp_die( 'We could not sign you in. Please contact your administrator.', 'Invalid Key' );
-		}
+		$new_key->mo_saml_load_key( $key_info['key'] );
 
 		return $new_key;
 	}
@@ -466,27 +462,26 @@ class Mo_SAML_Utilities {
 	 *
 	 * @param  Mo_SAML_Assertion $assertion Contains SAML Assertion.
 	 * @param  string            $not_before It specifies the earliest time instant at which the assertion is valid.
+	 * @throws Mo_SAML_SP_Clock_Behind_Of_IDP_Clock_Exception For SP clock is behind the IDP clock.
+	 * @throws Mo_SAML_SP_Clock_Ahead_Of_IDP_Clock_Exception For SP clock is ahead of the IDP clock.
 	 * @return void
 	 */
 	public static function mo_saml_verify_time_window( $assertion, $not_before ) {
 		if ( null !== $not_before && $not_before > time() + 60 ) {
 			Mo_SAML_Logger::mo_saml_add_log( 'Received an assertion that is valid in the future. Check clock synchronization on IdP and SP.', Mo_SAML_Logger::ERROR );
-			$error_code = Mo_Saml_Options_Enum_Error_Codes::$error_codes['WPSAMLERR007'];
-			self::mo_saml_die( $error_code );
+			throw new Mo_SAML_SP_Clock_Behind_Of_IDP_Clock_Exception( 'SP clock is behind the IDP clock.' );
 		}
 
 		$not_on_or_after = $assertion->mo_saml_get_not_on_or_after();
 		if ( null !== $not_on_or_after && $not_on_or_after <= time() - 60 ) {
 			Mo_SAML_Logger::mo_saml_add_log( 'Received an assertion that has expired. Check clock synchronization on IdP and SP.', Mo_SAML_Logger::ERROR );
-			$error_code = Mo_Saml_Options_Enum_Error_Codes::$error_codes['WPSAMLERR008'];
-			self::mo_saml_die( $error_code );
+			throw new Mo_SAML_SP_Clock_Ahead_Of_IDP_Clock_Exception( 'SP clock is ahead of the IDP clock.' );
 		}
 
 		$session_not_on_or_after = $assertion->mo_saml_get_session_not_on_or_after();
 		if ( null !== $session_not_on_or_after && $session_not_on_or_after <= time() - 60 ) {
 			Mo_SAML_Logger::mo_saml_add_log( 'Received an assertion with a session that has expired. Check clock synchronization on IdP and SP.', Mo_SAML_Logger::ERROR );
-			$error_code = Mo_Saml_Options_Enum_Error_Codes::$error_codes['WPSAMLERR008'];
-			self::mo_saml_die( $error_code );
+			throw new Mo_SAML_SP_Clock_Ahead_Of_IDP_Clock_Exception( 'SP clock is ahead of the IDP clock.' );
 		}
 	}
 	/**
@@ -498,6 +493,7 @@ class Mo_SAML_Utilities {
 	 * @param  Mo_SAML_Response $response                 Contains SAML Response.
 	 * @param  string           $cert_number              Holds Cert. Number.
 	 * @param  string           $relay_state              an url where users will be redirected after successful authentication.
+	 * @throws Mo_SAML_Invalid_Assertion_Exception For destination in response doesn't match the current URL.
 	 * @return string
 	 */
 	public static function mo_saml_process_response( $current_url, $cert_fingerprint, $signature_data, Mo_SAML_Response $response, $cert_number, $relay_state ) {
@@ -524,8 +520,7 @@ class Mo_SAML_Utilities {
 
 		if ( null !== $msg_destination && $msg_destination !== $current_url ) {
 			Mo_SAML_Logger::mo_saml_add_log( 'Destination in response doesn\'t match the current URL. Destination is "' . esc_url( $msg_destination ) . '", current URL is "' . esc_url( $current_url ) . '".', Mo_SAML_Logger::ERROR );
-			printf( 'Destination in response doesn\'t match the current URL. Destination is "' . esc_url( $msg_destination ) . '", current URL is "' . esc_url( $current_url ) . '".' );
-			exit;
+			throw new Mo_SAML_Invalid_Assertion_Exception( 'Destination in response doesn\'t match the current URL. Destination is "' . esc_url( $msg_destination ) . '", current URL is "' . esc_url( $current_url ) . '".' );
 		}
 
 		$response_signed = self::mo_saml_check_sign( $cert_fingerprint, $signature_data, $cert_number, $relay_state );
@@ -540,7 +535,7 @@ class Mo_SAML_Utilities {
 	 * @param  array $signature_data Signature Node in SAML Response.
 	 * @param  int   $cert_number Holds Cert. Number.
 	 * @param  mixed $relay_state an url where users will be redirected after successful authentication.
-	 * @throws Exception Throws unable to validate signature error.
+	 * @throws Mo_SAML_Invalid_Assertion_Exception Throws unable to validate signature error.
 	 * @return bool
 	 */
 	public static function mo_saml_check_sign( $cert_fingerprint, $signature_data, $cert_number, $relay_state ) {
@@ -590,6 +585,8 @@ class Mo_SAML_Utilities {
 	 * @param  string           $sp_entity_id Uniquely identitify the SP.
 	 * @param  string           $issuer_to_validate_against SP Issuer Value.
 	 * @param  string           $relay_state an url where users will be redirected after successful authentication.
+	 * @throws Mo_SAML_Invalid_Audience_URI_Exception For invalid audience URI.
+	 * @throws Mo_SAML_Invalid_Entity_ID_Exception For invalid issuer.
 	 * @return bool
 	 */
 	public static function mo_saml_validate_issuer_and_audience( $saml_response, $sp_entity_id, $issuer_to_validate_against, $relay_state ) {
@@ -614,12 +611,10 @@ class Mo_SAML_Utilities {
 					);
 					$error_code = Mo_Saml_Options_Enum_Error_Codes::$error_codes['WPSAMLERR009'];
 					if ( 'testValidate' === $relay_state ) {
-						$display_metadata_mismatch = '<p><strong>Audience URI configured in Identity Provider: </strong>' . $audiences[0] . '<p>
-						<p><strong>Audience URI configured in the plugin\'s Service Provider Metadata Tab: </strong>' . esc_html( $sp_entity_id ) . '</p>';
-						mo_saml_display_test_config_error_page( $error_code, $display_metadata_mismatch );
+						mo_saml_display_test_config_error_page( $error_code );
 						exit;
 					} else {
-						self::mo_saml_die( $error_code );
+						throw new Mo_SAML_Invalid_Audience_URI_Exception( 'Invalid Audience URI.' );
 					}
 				}
 			}
@@ -637,12 +632,11 @@ class Mo_SAML_Utilities {
 			);
 			$error_code = Mo_Saml_Options_Enum_Error_Codes::$error_codes['WPSAMLERR010'];
 			if ( 'testValidate' === $relay_state ) {
-				update_option( Mo_Saml_Sso_Constants::MO_SAML_VALID_AGAINST_ENTITY_ID, $issuer_to_validate_against );
 				update_option( Mo_Saml_Sso_Constants::MO_SAML_REQUIRED_ISSUER, $issuer );
 				wp_safe_redirect( admin_url() . '?page=mo_saml_settings&option=test_config_error_wpsamlerr010' );
 				exit;
 			} else {
-					self::mo_saml_die( $error_code );
+				throw new Mo_SAML_Invalid_Entity_ID_Exception( 'Invalid Issuer.' );
 			}
 		}
 	}
@@ -652,6 +646,7 @@ class Mo_SAML_Utilities {
 	 *
 	 * @param  array $cert_fingerprints certificates in the SAML Response.
 	 * @param  array $certificates certificates configured in the plugin.
+	 * @throws Mo_SAML_Invalid_Assertion_Exception For invalid certificate.
 	 * @return string
 	 */
 	private static function mo_saml_find_certificate( array $cert_fingerprints, array $certificates ) {
@@ -765,6 +760,8 @@ class Mo_SAML_Utilities {
 				'target' => array(),
 			),
 			'code' => array(),
+			'br'   => array(),
+			'b'    => array(),
 		);
 		echo '<div class="' . esc_html( $class ) . ' error_msg" style="display:none;"> <p>' . wp_kses( $message, $allowed_html ) . '</p></div>';
 	}
@@ -798,15 +795,6 @@ class Mo_SAML_Utilities {
 			}
 		}
 		return false;
-	}
-	/**
-	 * Block Access to WP site.
-	 *
-	 * @param  array $error_code contains error codes.
-	 * @return void
-	 */
-	public static function mo_saml_die( $error_code ) {
-		wp_die( 'We could not sign you in. Please contact your administrator with the following error code.<br><br>Error code: <b>' . esc_html( $error_code['code'] ) . '</b>', 'Error: ' . esc_html( $error_code['code'] ) );
 	}
 	/**
 	 * Get the file contents.
@@ -1010,5 +998,58 @@ class Mo_SAML_Utilities {
 		}
 		$relay_state = 'http' . ( $is_https ? 's' : '' ) . '://' . $http_host . '/' . $request_uri;
 		return $relay_state;
+	}
+
+	/**
+	 * By default load xml doesn't throw error, instead it reports error. This function is used to throw error in case any error occurs while loading XML.
+	 *
+	 * @param int    $errno error number.
+	 * @param string $errstr error string.
+	 * @throws Mo_SAML_Invalid_XML_Exception For invalid XML.
+	 * @return false|string
+	 */
+	public static function mo_saml_handle_xml_error( $errno, $errstr ) {
+		if ( E_WARNING === $errno && ( substr_count( $errstr, 'DOMDocument::loadXML()' ) > 0 ) ) {
+			// Log the warning when debug framework is implemented.
+			throw new Mo_SAML_Invalid_XML_Exception( 'Invalid XML Detected.' );
+		} else {
+			return false;
+		}
+	}
+	/**
+	 * This function is used to harden loadxml function to parse XML safely. Disabling loading/expansion of external and internal entities.
+	 *
+	 * @param string $xml raw xml string.
+	 * @throws Mo_SAML_DOM_Extension_Disabled_Exception For DOMDocument not installed.
+	 * @throws Mo_SAML_Invalid_XML_Exception For invalid XML.
+	 * @return DOMDocument | string
+	 */
+	public static function mo_saml_safe_load_xml( $xml ) {
+		if ( ! class_exists( 'DOMDocument' ) ) {
+			Mo_SAML_Logger::mo_saml_add_log( 'DOMDocument Not Installed.', \Mo_SAML_Logger::ERROR );
+			throw new Mo_SAML_DOM_Extension_Disabled_Exception( 'DOMDocument Not Installed.' );
+		}
+		$document = new DOMDocument();
+		libxml_set_external_entity_loader( null );
+		// Loading XML will not expand internal entities. These option don't provide any safety against internal entities expansion or recursive internal expansion. LIBXML_DTDLOAD | LIBXML_DTDVALID | LIBXML_NOENT | LIBXML_DTDATTR
+		// Disabling network while connection before we load xml. This is not fool proof.
+		//phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_set_error_handler -- We need this function to handle errors.
+		$old_error_handler = set_error_handler( array( 'Mo_SAML_Utilities', 'mo_saml_handle_xml_error' ) );
+		$is_xml_loaded     = $document->loadXML( $xml, LIBXML_NONET );
+		restore_error_handler();
+		// Iterate over the child nodes and invalidated XML if DOCTYPE node is found.
+		if ( $is_xml_loaded ) {
+			// phpcs:ignore WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase -- childNodes is predefined variable from DOMDocument class.
+			foreach ( $document->childNodes as $child ) {
+				// phpcs:ignore WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase -- nodeType is predefined variable from DOMDocument class.
+				if ( XML_DOCUMENT_TYPE_NODE === $child->nodeType ) {
+					Mo_SAML_Logger::mo_saml_add_log( 'Invalid XML Detected.', \Mo_SAML_Logger::ERROR );
+					throw new Mo_SAML_Invalid_XML_Exception( 'Invalid XML Detected.' );
+				}
+			}
+			return $document;
+		}
+		Mo_SAML_Logger::mo_saml_add_log( 'Invalid XML Detected.', \Mo_SAML_Logger::ERROR );
+		throw new Mo_SAML_Invalid_XML_Exception( 'Invalid XML Detected.' );
 	}
 }

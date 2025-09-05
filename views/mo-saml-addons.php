@@ -19,8 +19,8 @@ function mo_saml_show_addons_page() {
 	$addons_displayed                          = array();
 	$addon_desc                                = array(
 		'salesforce_sync'             => __( 'Allows to synchronize WordPress objects to Salesforce. Along with WordPress to Salesforce sync the plugin can also enable syncing data from Salesforce to WordPress.', 'miniorange-saml-20-single-sign-on' ),
-		'power_bi'                    => __( 'To establishing trust between the WordPress site and Power BI to securely authenticate and login users to the WordPress site.', 'miniorange-saml-20-single-sign-on' ),
-		'sharepoint'                  => __( 'To establishing trust between the WordPress site and Microsoft SharePoint to securely authenticate and login users to the WordPress site.', 'miniorange-saml-20-single-sign-on' ),
+		'power_bi'                    => __( 'To establish trust between the WordPress site and Power BI in order to securely authenticate and log in users to the WordPress site.', 'miniorange-saml-20-single-sign-on' ),
+		'sharepoint'                  => __( 'To establish trust between the WordPress site and Microsoft SharePoint in order to securely authenticate and log in users to the WordPress site.', 'miniorange-saml-20-single-sign-on' ),
 		'employee_directory'          => __( 'Creates a Central directory of Employees, Staff or Team. Provides an easily searchable, sortable list of all the Employees, group or tag your Employees based on categories and many more.', 'miniorange-saml-20-single-sign-on' ),
 		'azure_sync'                  => __( 'Provides an option for bi-directional synchronization of the users from Azure AD / Azure B2C / Office 365 to WordPress. It also supports seamless WordPress integration with all Microsoft Apps', 'miniorange-saml-20-single-sign-on' ),
 		'scim'                        => __( 'Allows real-time user sync (automatic user create, delete, and update) from your Identity Provider such as Azure, Okta, Onelogin into your WordPress site.', 'miniorange-saml-20-single-sign-on' ),
@@ -83,14 +83,16 @@ function mo_saml_show_addons_page() {
 				<?php
 			}
 			?>
-				<h4 class="form-head"><?php esc_html_e( 'Check out all our add-ons', 'miniorange-saml-20-single-sign-on' ); ?></h4>
-														<?php
-														foreach ( $addon_desc as $key => $value ) {
-															if ( ! in_array( $key, $addons_displayed, true ) ) {
-																get_addon_tile( $key, Mo_Saml_Options_Addons::mo_saml_translate( $key ), $value, Mo_Saml_Options_Addons::$addons_url[ $key ] );
-															}
-														}
-														?>
+				<h4 class="form-head mo-saml-bootstrap-mb-4"><?php esc_html_e( 'Check out all our add-ons', 'miniorange-saml-20-single-sign-on' ); ?></h4>
+					<div class="mo-saml-bootstrap-d-flex add-ons-row">
+						<?php
+						foreach ( $addon_desc as $key => $value ) {
+							if ( ! in_array( $key, $addons_displayed, true ) ) {
+								get_addon_tile( $key, Mo_Saml_Options_Addons::mo_saml_translate( $key ), $value, Mo_Saml_Options_Addons::$addons_url[ $key ] );
+							}
+						}
+						?>
+					</div>
 			</div>
 			<?php mo_saml_display_support_form(); ?>
 		</div>
@@ -112,11 +114,13 @@ function get_addon_tile( $addon_name, $addon_title, $addon_desc, $addon_url ) {
 	?>
 			<div class="mo-saml-add-ons-cards mo-saml-bootstrap-mt-3 mo-saml-bootstrap-bg-white">
 				<h4 class="mo-saml-addons-head"><?php echo esc_attr( $addon_title ); ?></h4>
-				<p class="mo-saml-bootstrap-pe-2 mo-saml-bootstrap-ps-4 mo-saml-add-on-card-desc"><?php echo esc_html( $addon_desc ); ?></p>
-				<img src="<?php echo esc_url( $icon_url ); ?>" class="mo-saml-addons-logo" alt=" Image">
+				<p class="mo-saml-bootstrap-pe-4 mo-saml-bootstrap-ps-4 mo-saml-add-on-card-desc"><?php echo esc_html( $addon_desc ); ?></p>
+				<div class="mo-saml-bootstrap-d-flex mo-saml-bootstrap-align-items-center add-on-card-bottom">
+					<a class="mo-saml-addons-readmore" href="<?php echo esc_url( $addon_url ); ?>" target="_blank"><?php esc_html_e( 'Learn More', 'miniorange-saml-20-single-sign-on' ); ?></a>
+					<img src="<?php echo esc_url( $icon_url ); ?>" class="mo-saml-addons-logo" alt=" Image">
+				</div>
 				<span class="mo-saml-add-ons-rect"></span>
 				<span class="mo-saml-add-ons-tri"></span>
-				<a class="mo-saml-addons-readmore" href="<?php echo esc_url( $addon_url ); ?>" target="_blank"><?php esc_html_e( 'Learn More', 'miniorange-saml-20-single-sign-on' ); ?></a>
 			</div>
 	<?php
 }

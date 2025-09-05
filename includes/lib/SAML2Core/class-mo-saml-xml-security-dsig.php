@@ -212,7 +212,7 @@ class Mo_SAML_XML_Security_DSig {
 	 * @param int         $pos position of singedInfo Node.
 	 *
 	 * @return DOMNode|null
-	 * @throws Exception Throws Exception for multiple signed-info nodes.
+	 * @throws \Mo_SAML_XMLSecLibs_Processing_Exception Throws Exception for multiple signed-info nodes.
 	 */
 	public function locate_signature( $obj_doc, $pos = 0 ) {
 		if ( $obj_doc instanceof DOMDocument ) {
@@ -230,7 +230,8 @@ class Mo_SAML_XML_Security_DSig {
 			$query          = './secdsig:SignedInfo';
 			$nodeset        = $xpath->query( $query, $this->sig_node );
 			if ( $nodeset->length > 1 ) {
-				throw new Exception( 'Invalid structure - Too many SignedInfo elements found' );
+				\Mo_SAML_Logger::mo_saml_add_log( 'Invalid structure - Too many SignedInfo elements found', \Mo_SAML_Logger::ERROR );
+				throw new \Mo_SAML_XMLSecLibs_Processing_Exception( 'Invalid structure - Too many SignedInfo elements found' );
 			}
 			return $this->sig_node;
 		}
@@ -262,7 +263,7 @@ class Mo_SAML_XML_Security_DSig {
 	 *
 	 * @param string $method canonical method.
 	 *
-	 * @throws Exception If canonical method is not valid.
+	 * @throws \Mo_SAML_XMLSecLibs_Processing_Exception If canonical method is not valid.
 	 */
 	public function set_canonical_method( $method ) {
 		switch ( $method ) {
@@ -273,7 +274,8 @@ class Mo_SAML_XML_Security_DSig {
 				$this->canonical_method = $method;
 				break;
 			default:
-				throw new Exception( 'Invalid Canonical Method' );
+				\Mo_SAML_Logger::mo_saml_add_log( 'Invalid Canonical Method', \Mo_SAML_Logger::ERROR );
+				throw new \Mo_SAML_XMLSecLibs_Processing_Exception( 'Invalid Canonical Method' );
 		}
 		$xpath = $this->get_x_path_obj();
 		if ( $xpath ) {
@@ -351,7 +353,7 @@ class Mo_SAML_XML_Security_DSig {
 	 * Canonicalize signed Info.
 	 *
 	 * @return null|string
-	 * @throws Exception Throws Exception for multiple signed-info nodes.
+	 * @throws \Mo_SAML_XMLSecLibs_Processing_Exception Throws Exception for multiple signed-info nodes.
 	 */
 	public function canonicalize_signed_info() {
 		$doc             = $this->sig_node->ownerDocument;
@@ -361,7 +363,8 @@ class Mo_SAML_XML_Security_DSig {
 			$query   = './secdsig:SignedInfo';
 			$nodeset = $xpath->query( $query, $this->sig_node );
 			if ( $nodeset->length > 1 ) {
-				throw new Exception( 'Invalid structure - Too many SignedInfo elements found' );
+				\Mo_SAML_Logger::mo_saml_add_log( 'Invalid structure - Too many SignedInfo elements found', \Mo_SAML_Logger::ERROR );
+				throw new \Mo_SAML_XMLSecLibs_Processing_Exception( 'Invalid structure - Too many SignedInfo elements found' );
 			}
 			$sign_info_node = $nodeset->item( 0 );
 			if ( $sign_info_node ) {
@@ -402,7 +405,7 @@ class Mo_SAML_XML_Security_DSig {
 	 * @param bool   $encode true if we need to return base_64 encoded digest.
 	 *
 	 * @return string
-	 * @throws Exception Throws exception is digest algorithm is not valid.
+	 * @throws \Mo_SAML_XMLSecLibs_Processing_Exception Throws exception is digest algorithm is not valid.
 	 */
 	public function calculate_digest( $digest_algorithm, $data, $encode = true ) {
 		switch ( $digest_algorithm ) {
@@ -422,7 +425,8 @@ class Mo_SAML_XML_Security_DSig {
 				$alg = 'ripemd160';
 				break;
 			default:
-				throw new Exception( 'Cannot validate digest: Unsupported Algorithm ' . esc_html( $digest_algorithm ) );
+				\Mo_SAML_Logger::mo_saml_add_log( 'Cannot validate digest: Unsupported Algorithm ' . $digest_algorithm, \Mo_SAML_Logger::ERROR );
+				throw new \Mo_SAML_XMLSecLibs_Processing_Exception( sprintf( 'Cannot validate digest: Unsupported Algorithm <%s>', esc_html( $digest_algorithm ) ) );
 		}
 
 		$digest = hash( $alg, $data, true );
@@ -448,13 +452,9 @@ class Mo_SAML_XML_Security_DSig {
 		$xpath->registerNamespace( 'secdsig', self::XMLDSIGNS );
 		$query            = 'string(./secdsig:DigestMethod/@Algorithm)';
 		$digest_algorithm = $xpath->evaluate( $query, $ref_node );
-		try {
-			$dig_value = $this->calculate_digest( $digest_algorithm, $data, false );
-		} catch ( Exception $exception ) {
-			wp_die( 'We could not sign you in. Please contact your administrator.', 'Invalid Algorithm' );
-		}
-		$query        = 'string(./secdsig:DigestValue)';
-		$digest_value = $xpath->evaluate( $query, $ref_node );
+		$dig_value        = $this->calculate_digest( $digest_algorithm, $data, false );
+		$query            = 'string(./secdsig:DigestValue)';
+		$digest_value     = $xpath->evaluate( $query, $ref_node );
 		//phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.obfuscation_base64_decode -- base_64 encoding is necessary as per standards of SAML.
 		return ( base64_decode( $digest_value ) === $dig_value );
 	}
@@ -663,7 +663,7 @@ class Mo_SAML_XML_Security_DSig {
 	 * Get reference IDs.
 	 *
 	 * @return array
-	 * @throws Exception For zero nodes.
+	 * @throws \Mo_SAML_XMLSecLibs_Processing_Exception For zero nodes.
 	 */
 	public function get_ref_ids() {
 		$refids = array();
@@ -672,7 +672,8 @@ class Mo_SAML_XML_Security_DSig {
 		$query   = './secdsig:SignedInfo[1]/secdsig:Reference';
 		$nodeset = $xpath->query( $query, $this->sig_node );
 		if ( 0 === $nodeset->length ) {
-			throw new Exception( 'Reference nodes not found' );
+			\Mo_SAML_Logger::mo_saml_add_log( 'Reference nodes not found', \Mo_SAML_Logger::ERROR );
+			throw new \Mo_SAML_XMLSecLibs_Processing_Exception( 'Reference nodes not found' );
 		}
 		foreach ( $nodeset as $ref_node ) {
 			$refids[] = $this->get_ref_node_id( $ref_node );
@@ -684,7 +685,7 @@ class Mo_SAML_XML_Security_DSig {
 	 * Validate reference of XML.
 	 *
 	 * @return bool
-	 * @throws Exception Throws if Signature node is empty.
+	 * @throws \Mo_SAML_XMLSecLibs_Processing_Exception Throws if Signature node is empty.
 	 */
 	public function validate_reference() {
 		$doc_elem = $this->sig_node->ownerDocument->documentElement;
@@ -697,7 +698,8 @@ class Mo_SAML_XML_Security_DSig {
 		$query   = './secdsig:SignedInfo[1]/secdsig:Reference';
 		$nodeset = $xpath->query( $query, $this->sig_node );
 		if ( 0 === $nodeset->length ) {
-			throw new Exception( 'Reference nodes not found' );
+			\Mo_SAML_Logger::mo_saml_add_log( 'Reference nodes not found', \Mo_SAML_Logger::ERROR );
+			throw new \Mo_SAML_XMLSecLibs_Processing_Exception( 'Reference nodes not found' );
 		}
 
 		/* Initialize/reset the list of validated nodes. */
@@ -707,7 +709,8 @@ class Mo_SAML_XML_Security_DSig {
 			if ( ! $this->process_ref_node( $ref_node ) ) {
 				/* Clear the list of validated nodes. */
 				$this->validated_nodes = null;
-				throw new Exception( 'Reference validation failed' );
+				\Mo_SAML_Logger::mo_saml_add_log( 'Reference validation failed', \Mo_SAML_Logger::ERROR );
+				throw new \Mo_SAML_XMLSecLibs_Processing_Exception( 'Reference validation failed' );
 			}
 		}
 		return true;
@@ -793,11 +796,7 @@ class Mo_SAML_XML_Security_DSig {
 		}
 
 		$canonical_data = $this->process_transforms( $ref_node, $node );
-		try {
-			$dig_value = $this->calculate_digest( $algorithm, $canonical_data );
-		} catch ( Exception $exception ) {
-			wp_die( 'We could not sign you in. Please contact your administrator.', 'Invalid Algorithm' );
-		}
+		$dig_value      = $this->calculate_digest( $algorithm, $canonical_data );
 
 		$digest_method = $this->create_new_sign_node( 'DigestMethod' );
 		$ref_node->appendChild( $digest_method );
@@ -934,7 +933,7 @@ class Mo_SAML_XML_Security_DSig {
 	 * @param Mo_SAML_XML_Security_Key $obj_key instance of Mo_SAML_XML_Security_Key.
 	 *
 	 * @return bool|int
-	 * @throws Exception Throws if signature value node is empty.
+	 * @throws \Mo_SAML_XMLSecLibs_Processing_Exception Throws if signature value node is empty.
 	 */
 	public function verify( $obj_key ) {
 		$doc   = $this->sig_node->ownerDocument;
@@ -943,7 +942,8 @@ class Mo_SAML_XML_Security_DSig {
 		$query     = 'string(./secdsig:SignatureValue)';
 		$sig_value = $xpath->evaluate( $query, $this->sig_node );
 		if ( empty( $sig_value ) ) {
-			throw new Exception( 'Unable to locate SignatureValue' );
+			\Mo_SAML_Logger::mo_saml_add_log( 'Unable to locate SignatureValue', \Mo_SAML_Logger::ERROR );
+			throw new \Mo_SAML_XMLSecLibs_Processing_Exception( 'Unable to locate SignatureValue' );
 		}
 		//phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.obfuscation_base64_decode -- base_64 encode/decode is necessary as per standards of SAML.
 		return $obj_key->mo_saml_verify_signature( $this->signed_info, base64_decode( $sig_value ) );
@@ -1124,7 +1124,7 @@ class Mo_SAML_XML_Security_DSig {
 	 * @param null|array    $options options.
 	 *
 	 * @return void
-	 * @throws Exception Throws if parent node is not valid.
+	 * @throws \Mo_SAML_XMLSecLibs_Processing_Exception Throws if parent node is not valid.
 	 */
 	public static function static_add509_cert(
 		$parent_ref,
@@ -1139,7 +1139,8 @@ class Mo_SAML_XML_Security_DSig {
 			$cert = file_get_contents( $cert );
 		}
 		if ( ! $parent_ref instanceof DOMElement ) {
-			throw new Exception( 'Invalid parent Node parameter' );
+			\Mo_SAML_Logger::mo_saml_add_log( 'Invalid parent Node parameter', \Mo_SAML_Logger::ERROR );
+			throw new \Mo_SAML_XMLSecLibs_Processing_Exception( 'Invalid parent Node parameter' );
 		}
 		//phpcs:ignore WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase -- ownerDocument is XML DOM property.
 		$base_doc = $parent_ref->ownerDocument;
@@ -1262,11 +1263,7 @@ class Mo_SAML_XML_Security_DSig {
 	public function add509_cert( $cert, $is_pem_format = true, $is_url = false, $options = null ) {
 		$xpath = $this->get_x_path_obj();
 		if ( $xpath ) {
-			try {
-				self::static_add509_cert( $this->sig_node, $cert, $is_pem_format, $is_url, $xpath, $options );
-			} catch ( Exception $exception ) {
-				wp_die( 'We could not sign you in. Please contact your administrator.', 'Invalid Node' );
-			}
+			self::static_add509_cert( $this->sig_node, $cert, $is_pem_format, $is_url, $xpath, $options );
 		}
 	}
 

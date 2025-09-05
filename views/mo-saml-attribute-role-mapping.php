@@ -57,32 +57,33 @@ function mo_saml_display_attribute_mapping() {
 			</div>
 		</div>
 
-		<div class="prem-info mo-saml-bootstrap-mt-5 mo-saml-bootstrap-d-block">
-			<div class="prem-icn nameid-prem-img sso-btn-prem-img"><img class="crown_img" src="<?php echo esc_url( Mo_SAML_Utilities::mo_saml_get_plugin_dir_url() . 'images/crown.webp' ); ?>">
-				<p class="nameid-prem-text"><?php esc_html_e( 'The basic attributes are configurable in Standard, Premium, Enterprise and All-Inclusive plans. Custom Attributes are configurable in Premium and higher plans. ', 'miniorange-saml-20-single-sign-on' ); ?><a href="<?php echo esc_url( Mo_Saml_External_Links::PRICING_PAGE ); ?>" target="_blank" class="mo-saml-bootstrap-text-warning"><?php esc_html_e( 'Click here to upgrade', 'miniorange-saml-20-single-sign-on' ); ?></a></p>
+		<div class="prem-info mo-saml-bootstrap-mt-3 mo-saml-bootstrap-d-block">
+			<div class="prem-icn nameid-prem-img sso-btn-prem-img">
+			<svg class="crown_img" stroke="#FA8E00" fill="#FA8E00" stroke-width="0" viewBox="0 0 576 512" height="40px" width="40px" xmlns="http://www.w3.org/2000/svg"><path d="M309 106c11.4-7 19-19.7 19-34c0-22.1-17.9-40-40-40s-40 17.9-40 40c0 14.4 7.6 27 19 34L209.7 220.6c-9.1 18.2-32.7 23.4-48.6 10.7L72 160c5-6.7 8-15 8-24c0-22.1-17.9-40-40-40S0 113.9 0 136s17.9 40 40 40c.2 0 .5 0 .7 0L86.4 427.4c5.5 30.4 32 52.6 63 52.6l277.2 0c30.9 0 57.4-22.1 63-52.6L535.3 176c.2 0 .5 0 .7 0c22.1 0 40-17.9 40-40s-17.9-40-40-40s-40 17.9-40 40c0 9 3 17.3 8 24l-89.1 71.3c-15.9 12.7-39.5 7.5-48.6-10.7L309 106z"></path></svg>
+				<p class="nameid-prem-text"><?php esc_html_e( 'The basic attributes are configurable in Standard, Premium, Enterprise and All-Inclusive plans. Custom Attributes are configurable in Premium and higher plans.', 'miniorange-saml-20-single-sign-on' ); ?><a href="<?php echo esc_url( Mo_Saml_External_Links::PRICING_PAGE ); ?>" target="_blank" class="mo-saml-bootstrap-text-warning"><?php esc_html_e( 'Click here to upgrade', 'miniorange-saml-20-single-sign-on' ); ?></a></p>
 			</div>
 			<div class="mo-saml-bootstrap-row align-items-top">
 				<div class="mo-saml-bootstrap-col-md-3">
 					<h6 class="mo-saml-bootstrap-text-secondary"><?php esc_html_e( 'Username (required) ', 'miniorange-saml-20-single-sign-on' ); ?></span>:</h6>
 				</div>
 				<div class="mo-saml-bootstrap-col-md-6">
-					<p>NameID</p>
+					<p class="mo-saml-bootstrap-mt-0">NameID</p>
 				</div>
 			</div>
-			<div class="mo-saml-bootstrap-row align-items-top mo-saml-bootstrap-mt-4">
+			<div class="mo-saml-bootstrap-row align-items-top mo-saml-bootstrap-mt-2">
 				<div class="mo-saml-bootstrap-col-md-3">
 					<h6 class="mo-saml-bootstrap-text-secondary"><?php esc_html_e( 'Email (required) :', 'miniorange-saml-20-single-sign-on' ); ?></h6>
 				</div>
 				<div class="mo-saml-bootstrap-col-md-6">
-					<p>NameID</p>
+					<p class="mo-saml-bootstrap-mt-0">NameID</p>
 				</div>
 			</div>
-			<div class="mo-saml-bootstrap-row align-items-top mo-saml-bootstrap-mt-4">
+			<div class="mo-saml-bootstrap-row align-items-top mo-saml-bootstrap-mt-3">
 				<div class="mo-saml-bootstrap-col-md-3">
 					<h6 class="mo-saml-bootstrap-text-secondary"><?php esc_html_e( 'First Name :', 'miniorange-saml-20-single-sign-on' ); ?></h6>
 				</div>
 				<div class="mo-saml-bootstrap-col-md-6">
-					<input type="text" name="saml_am_first_name" placeholder="Enter attribute name for First Name" class="mo-saml-bootstrap-w-100 mo-saml-bootstrap-bg-light cursor-disabled" value="" disabled>
+					<input type="text" name="saml_am_first_name" placeholder="<?php esc_attr_e( 'Enter attribute name for First Name', 'miniorange-saml-20-single-sign-on' ); ?>" class="mo-saml-bootstrap-w-100 mo-saml-bootstrap-bg-light cursor-disabled" value="" disabled>
 				</div>
 			</div>
 			<div class="mo-saml-bootstrap-row align-items-top mo-saml-bootstrap-mt-4">
@@ -90,7 +91,7 @@ function mo_saml_display_attribute_mapping() {
 					<h6 class="mo-saml-bootstrap-text-secondary"><?php esc_html_e( 'Last Name :', 'miniorange-saml-20-single-sign-on' ); ?></h6>
 				</div>
 				<div class="mo-saml-bootstrap-col-md-6">
-					<input type="text" name="saml_am_last_name" placeholder="Enter attribute name for Last Name" class="mo-saml-bootstrap-w-100 mo-saml-bootstrap-bg-light cursor-disabled" value="" disabled>
+					<input type="text" name="saml_am_last_name" placeholder="<?php esc_attr_e( 'Enter attribute name for Last Name', 'miniorange-saml-20-single-sign-on' ); ?>" class="mo-saml-bootstrap-w-100 mo-saml-bootstrap-bg-light cursor-disabled" value="" disabled>
 				</div>
 			</div>
 			<div class="mo-saml-bootstrap-row align-items-top mo-saml-bootstrap-mt-4">
@@ -98,7 +99,7 @@ function mo_saml_display_attribute_mapping() {
 					<h6 class="mo-saml-bootstrap-text-secondary"><?php esc_html_e( 'Group/Role :', 'miniorange-saml-20-single-sign-on' ); ?></h6>
 				</div>
 				<div class="mo-saml-bootstrap-col-md-6">
-					<input type="text" name="" placeholder="Enter attribute name for Group/Role" class="mo-saml-bootstrap-w-100 mo-saml-bootstrap-bg-light cursor-disabled" value="" disabled>
+					<input type="text" name="" placeholder="<?php esc_attr_e( 'Enter attribute name for Group/Role', 'miniorange-saml-20-single-sign-on' ); ?>" class="mo-saml-bootstrap-w-100 mo-saml-bootstrap-bg-light cursor-disabled" value="" disabled>
 				</div>
 			</div>
 			<div class="mo-saml-bootstrap-row align-items-top mo-saml-bootstrap-mt-4">
@@ -106,14 +107,14 @@ function mo_saml_display_attribute_mapping() {
 					<h6 class="mo-saml-bootstrap-text-secondary"><?php esc_html_e( 'Map Custom Attributes', 'miniorange-saml-20-single-sign-on' ); ?></h6>
 				</div>
 				<div class="mo-saml-bootstrap-col-md-6">
-					<p><?php esc_html_e( 'Customized Attribute Mapping means you can map any attribute of the IDP to the usermeta table of your database.', 'miniorange-saml-20-single-sign-on' ); ?></p>
+					<p class="mo-saml-bootstrap-mt-0"><?php esc_html_e( 'Customized Attribute Mapping means you can map any attribute of the IDP to the usermeta table of your database.', 'miniorange-saml-20-single-sign-on' ); ?></p>
 				</div>
 			</div>
 
 		</div>
-		<div class="align-items-top mo-saml-bootstrap-mt-5 prem-info">
-			<div class="prem-icn anonymous-prem-img sso-btn-prem-img"><img class="crown_img" src="<?php echo esc_url( Mo_SAML_Utilities::mo_saml_get_plugin_dir_url() . 'images/crown.webp' ); ?>">
-				<p class="anonymous-text"><?php esc_html_e( 'Enable this option if you want to allow users to login to the WordPress site without creating a WordPress user account for them. ', 'miniorange-saml-20-single-sign-on' ); ?><a href="<?php echo esc_url( Mo_Saml_External_Links::PRICING_PAGE ); ?>" target="_blank" class="mo-saml-bootstrap-text-warning"><?php esc_html_e( 'Available in Paid Plugin', 'miniorange-saml-20-single-sign-on' ); ?></a></p>
+		<div class="align-items-top mo-saml-bootstrap-mt-3 prem-info">
+			<div class="prem-icn anonymous-prem-img sso-btn-prem-img"><svg class="crown_img" stroke="#FA8E00" fill="#FA8E00" stroke-width="0" viewBox="0 0 576 512" height="40px" width="40px" xmlns="http://www.w3.org/2000/svg"><path d="M309 106c11.4-7 19-19.7 19-34c0-22.1-17.9-40-40-40s-40 17.9-40 40c0 14.4 7.6 27 19 34L209.7 220.6c-9.1 18.2-32.7 23.4-48.6 10.7L72 160c5-6.7 8-15 8-24c0-22.1-17.9-40-40-40S0 113.9 0 136s17.9 40 40 40c.2 0 .5 0 .7 0L86.4 427.4c5.5 30.4 32 52.6 63 52.6l277.2 0c30.9 0 57.4-22.1 63-52.6L535.3 176c.2 0 .5 0 .7 0c22.1 0 40-17.9 40-40s-17.9-40-40-40s-40 17.9-40 40c0 9 3 17.3 8 24l-89.1 71.3c-15.9 12.7-39.5 7.5-48.6-10.7L309 106z"></path></svg>
+				<p class="anonymous-text"><?php esc_html_e( 'Enable this option if you want to allow users to login to the WordPress site without creating a WordPress user account for them.', 'miniorange-saml-20-single-sign-on' ); ?><a href="<?php echo esc_url( Mo_Saml_External_Links::PRICING_PAGE ); ?>" target="_blank" class="mo-saml-bootstrap-text-warning"><?php esc_html_e( 'Available in Paid Plugin', 'miniorange-saml-20-single-sign-on' ); ?></a></p>
 			</div>
 			<div class="mo-saml-bootstrap-row mo-saml-bootstrap-align-items-center">
 				<div class="mo-saml-bootstrap-col-md-3">
@@ -161,27 +162,27 @@ function mo_saml_display_role_mapping( $default_role, $roles ) {
 					</h4>
 				</div>
 			</div>
-			<div class="mo-saml-bootstrap-align-items-center mo-saml-bootstrap-mt-5"><b><?php esc_html_e( 'NOTE:', 'miniorange-saml-20-single-sign-on' ); ?></b> <?php esc_html_e( 'Role will be assigned only to new users. Existing WordPress users\' role remains same.', 'miniorange-saml-20-single-sign-on' ); ?></div>
-			<div class="mo-saml-bootstrap-row mo-saml-bootstrap-align-items-center mo-saml-bootstrap-mt-5">
+			<div class="mo-saml-bootstrap-align-items-center mo-saml-bootstrap-mt-3"><b><?php esc_html_e( 'NOTE:', 'miniorange-saml-20-single-sign-on' ); ?></b> <?php esc_html_e( 'Role will be assigned only to new users. Existing WordPress users\' role remains same.', 'miniorange-saml-20-single-sign-on' ); ?></div>
+			<div class="mo-saml-bootstrap-row mo-saml-bootstrap-align-items-center mo-saml-bootstrap-mt-0">
 				<div class="mo-saml-bootstrap-col-md-3">
 					<h5><?php esc_html_e( 'Default Role :', 'miniorange-saml-20-single-sign-on' ); ?> </h5>
 				</div>
-				<div class="mo-saml-bootstrap-col-md-4">
+				<div class="mo-saml-bootstrap-col-md-2">
 					<select id="saml_am_default_user_role" name="saml_am_default_user_role">
 						<?php
 						wp_dropdown_roles( $default_role );
 						?>
 					</select>
 				</div>
-				<div class="mo-saml-bootstrap-col-md-4">
+				<div class="mo-saml-bootstrap-col-md-2">
 					<input type="submit" class="btn-cstm mo-saml-bootstrap-bg-info mo-saml-bootstrap-rounded" name="submit" value="<?php esc_html_e( 'Update', 'miniorange-saml-20-single-sign-on' ); ?>">
 				</div>
 			</div>
-			<div class="prem-info mo-saml-bootstrap-mt-5">
-				<div class="prem-icn role-prem-img sso-btn-prem-img"><img class="crown_img" src="<?php echo esc_url( Mo_SAML_Utilities::mo_saml_get_plugin_dir_url() . 'images/crown.webp' ); ?>">
+			<div class="prem-info mo-saml-bootstrap-mt-0">
+				<div class="prem-icn role-prem-img sso-btn-prem-img"><svg class="crown_img" stroke="#FA8E00" fill="#FA8E00" stroke-width="0" viewBox="0 0 576 512" height="40px" width="40px" xmlns="http://www.w3.org/2000/svg"><path d="M309 106c11.4-7 19-19.7 19-34c0-22.1-17.9-40-40-40s-40 17.9-40 40c0 14.4 7.6 27 19 34L209.7 220.6c-9.1 18.2-32.7 23.4-48.6 10.7L72 160c5-6.7 8-15 8-24c0-22.1-17.9-40-40-40S0 113.9 0 136s17.9 40 40 40c.2 0 .5 0 .7 0L86.4 427.4c5.5 30.4 32 52.6 63 52.6l277.2 0c30.9 0 57.4-22.1 63-52.6L535.3 176c.2 0 .5 0 .7 0c22.1 0 40-17.9 40-40s-17.9-40-40-40s-40 17.9-40 40c0 9 3 17.3 8 24l-89.1 71.3c-15.9 12.7-39.5 7.5-48.6-10.7L309 106z"></path></svg>
 					<p class="role-prem-text"><?php esc_html_e( 'Customized Role Mapping options are configurable in the Premium, Enterprise and All-Inclusive versions of the plugin.', 'miniorange-saml-20-single-sign-on' ); ?> <a href="<?php echo esc_url( Mo_Saml_External_Links::PRICING_PAGE ); ?>" target="_blank" class="mo-saml-bootstrap-text-warning"><?php esc_html_e( 'Click here to upgrade', 'miniorange-saml-20-single-sign-on' ); ?></a></p>
 				</div>
-				<div class="mo-saml-bootstrap-row align-items-top mo-saml-bootstrap-mt-4 mo-saml-bootstrap-col-md-12">
+				<div class="mo-saml-bootstrap-row align-items-top mo-saml-bootstrap-mt-0 mo-saml-bootstrap-col-md-12">
 					<div class="mo-saml-bootstrap-col-md-7">
 						<h6 class="mo-saml-bootstrap-text-secondary"><?php esc_html_e( 'Do not auto create users if roles are not mapped here :', 'miniorange-saml-20-single-sign-on' ); ?></h6>
 					</div>
@@ -191,7 +192,7 @@ function mo_saml_display_role_mapping( $default_role, $roles ) {
 						<p class="mt-2"><?php esc_html_e( 'Enable this option if you do not want the unmapped users to register into your site via SSO.', 'miniorange-saml-20-single-sign-on' ); ?></p>
 					</div>
 				</div>
-				<div class="mo-saml-bootstrap-row align-items-top mo-saml-bootstrap-mt-4 mo-saml-bootstrap-col-md-12">
+				<div class="mo-saml-bootstrap-row align-items-top mo-saml-bootstrap-mt-3 mo-saml-bootstrap-col-md-12">
 					<div class="mo-saml-bootstrap-col-md-7">
 						<h6 class="mo-saml-bootstrap-text-secondary"><?php esc_html_e( 'Do not assign role to unlisted users :', 'miniorange-saml-20-single-sign-on' ); ?></h6>
 					</div>
@@ -202,19 +203,24 @@ function mo_saml_display_role_mapping( $default_role, $roles ) {
 				</div>
 			</div>
 
-			<div class="mo-saml-bootstrap-d-block prem-info mo-saml-bootstrap-mt-5">
-				<div class="prem-icn role-admin-prem-img sso-btn-prem-img"><img class="crown_img" src="<?php echo esc_url( Mo_SAML_Utilities::mo_saml_get_plugin_dir_url() . 'images/crown.webp' ); ?>">
+			<div class="mo-saml-bootstrap-d-block prem-info mo-saml-bootstrap-mt-3">
+				<div class="prem-icn role-admin-prem-img sso-btn-prem-img"><svg class="crown_img" stroke="#FA8E00" fill="#FA8E00" stroke-width="0" viewBox="0 0 576 512" height="40px" width="40px" xmlns="http://www.w3.org/2000/svg"><path d="M309 106c11.4-7 19-19.7 19-34c0-22.1-17.9-40-40-40s-40 17.9-40 40c0 14.4 7.6 27 19 34L209.7 220.6c-9.1 18.2-32.7 23.4-48.6 10.7L72 160c5-6.7 8-15 8-24c0-22.1-17.9-40-40-40S0 113.9 0 136s17.9 40 40 40c.2 0 .5 0 .7 0L86.4 427.4c5.5 30.4 32 52.6 63 52.6l277.2 0c30.9 0 57.4-22.1 63-52.6L535.3 176c.2 0 .5 0 .7 0c22.1 0 40-17.9 40-40s-17.9-40-40-40s-40 17.9-40 40c0 9 3 17.3 8 24l-89.1 71.3c-15.9 12.7-39.5 7.5-48.6-10.7L309 106z"></path></svg>
 					<p class="role-admin-prem-text"><?php esc_html_e( 'Customized Role Mapping options are configurable in the Premium, Enterprise and All-Inclusive versions of the plugin. ', 'miniorange-saml-20-single-sign-on' ); ?><a href="<?php echo esc_url( Mo_Saml_External_Links::PRICING_PAGE ); ?>" target="_blank" class="mo-saml-bootstrap-text-warning"><?php esc_html_e( 'Click here to upgrade', 'miniorange-saml-20-single-sign-on' ); ?></a></p>
 				</div>
 				<?php
 				foreach ( $roles as $role_value => $role_name ) {
 					?>
-					<div class="mo-saml-bootstrap-row align-items-top mo-saml-bootstrap-mt-4">
+					<div class="mo-saml-bootstrap-row align-items-top mo-saml-bootstrap-mt-3">
 						<div class="mo-saml-bootstrap-col-md-3">
 							<h6 class="mo-saml-bootstrap-text-secondary"><?php echo esc_html( $role_name ); ?> :</h6>
 						</div>
 						<div class="mo-saml-bootstrap-col-md-7">
-							<input type="text" name="" placeholder="Semi-colon(;) separated Group/Role value for <?php echo esc_html( $role_name ); ?>" class="mo-saml-bootstrap-w-100 mo-saml-bootstrap-bg-light cursor-disabled" value="" disabled>
+							<input type="text" name="" placeholder="
+							<?php
+							echo esc_attr( sprintf( __( 'Semi-colon(;) separated Group/Role value for', 'miniorange-saml-20-single-sign-on' ) ) );
+							echo ' ' . esc_html( $role_name );
+							?>
+							" class="mo-saml-bootstrap-w-100 mo-saml-bootstrap-bg-light cursor-disabled" value="" disabled>
 						</div>
 					</div>
 					<?php

@@ -211,9 +211,10 @@ class Mo_SAML_Assertion {
 	 * Constructor: Initializes Assertion Processing.
 	 *
 	 * @param DOMElement $xml Assertion in XML format.
-	 * @throws Exception For unsupported SAML version or for missing Issuer and ID.
+	 * @throws Mo_SAML_Encrypted_Assertion_Exception For encrypted assertion.
+	 * @throws Mo_SAML_Invalid_Assertion_Exception For invalid assertion.
 	 */
-	public function __construct( DOMElement $xml = null ) {
+	public function __construct( $xml = null ) {
 		$this->id                       = Mo_SAML_Utilities::mo_saml_generate_id();
 		$this->issue_instant            = Mo_SAML_Utilities::mo_saml_generate_time_stamp();
 		$this->issuer                   = '';
@@ -237,44 +238,44 @@ class Mo_SAML_Assertion {
 				exit;
 			} else {
 				Mo_SAML_Logger::mo_saml_add_log( 'Assertion encrypted', Mo_SAML_Logger::ERROR );
-				Mo_SAML_Utilities::mo_saml_die( $error_code );
+				throw new Mo_SAML_Encrypted_Assertion_Exception( 'Encrypted Assertion not supported.' );
 			}
 		}
 		if ( ! $xml->hasAttribute( 'ID' ) ) {
-			throw new Exception( 'Missing ID attribute on SAML assertion.' );
+			Mo_SAML_Logger::mo_saml_add_log( 'Missing ID attribute in Assertion', Mo_SAML_Logger::ERROR );
+			throw new Mo_SAML_Invalid_Assertion_Exception( 'Missing ID attribute on SAML assertion.' );
 		}
 		$this->id = $xml->getAttribute( 'ID' );
 
 		if ( $xml->getAttribute( 'Version' ) !== '2.0' ) {
 			/* Currently a very strict check. */
-			throw new Exception( 'Unsupported version: ' . esc_html( $xml->getAttribute( 'Version' ) ) );
+			Mo_SAML_Logger::mo_saml_add_log( 'Unsupported version', Mo_SAML_Logger::ERROR );
+			throw new Mo_SAML_Invalid_Assertion_Exception( 'Unsupported version: ' . esc_html( $xml->getAttribute( 'Version' ) ) );
 		}
 
 		$this->issue_instant = Mo_SAML_Utilities::mo_saml_xs_date_time_to_timestamp( $xml->getAttribute( 'IssueInstant' ) );
 
 		$issuer = Mo_SAML_Utilities::mo_saml_xp_query( $xml, './saml_assertion:Issuer' );
 		if ( empty( $issuer ) ) {
-			throw new Exception( 'Missing <saml:Issuer> in assertion.' );
+			Mo_SAML_Logger::mo_saml_add_log( 'Missing <saml:Issuer> in Assertion', Mo_SAML_Logger::ERROR );
+			throw new Mo_SAML_Invalid_Assertion_Exception( 'Missing <saml:Issuer> in assertion.' );
 		}
 		$this->issuer = trim( $issuer[0]->textContent );
 
-		try {
-			$this->mo_saml_parse_conditions( $xml );
-			$this->mo_saml_parse_authn_statement( $xml );
-			$this->mo_saml_parse_attributes( $xml );
-			$this->mo_saml_parse_encrypted_attributes( $xml );
-			$this->mo_saml_parse_signature( $xml );
-			$this->mo_saml_parse_subject( $xml );
-		} catch ( Exception $exception ) {
-			wp_die( 'We could not sign you in. Please contact your administrator.', 'Invalid SAML response' );
-		}
+		$this->mo_saml_parse_conditions( $xml );
+		$this->mo_saml_parse_authn_statement( $xml );
+		$this->mo_saml_parse_attributes( $xml );
+		$this->mo_saml_parse_encrypted_attributes( $xml );
+		$this->mo_saml_parse_signature( $xml );
+		$this->mo_saml_parse_subject( $xml );
 	}
 
 	/**
 	 * Parse subject in assertion.
 	 *
 	 * @param DOMElement $xml The assertion XML element.
-	 * @throws Exception For more than one nodes of the following: Subject, NameID, EncryptedData.
+	 * @throws Mo_SAML_Missing_NameID_Exception For missing NameID.
+	 * @throws Mo_SAML_Invalid_Assertion_Exception For invalid assertion.
 	 */
 	private function mo_saml_parse_subject( DOMElement $xml ) {
 		$subject = Mo_SAML_Utilities::mo_saml_xp_query( $xml, './saml_assertion:Subject' );
@@ -282,7 +283,8 @@ class Mo_SAML_Assertion {
 			/* No Subject node. */
 			return;
 		} elseif ( count( $subject ) > 1 ) {
-			throw new Exception( 'More than one <saml:Subject> in <saml:Assertion>.' );
+			Mo_SAML_Logger::mo_saml_add_log( 'More than one <saml:Subject> in Assertion', Mo_SAML_Logger::ERROR );
+			throw new Mo_SAML_Invalid_Assertion_Exception( 'More than one <saml:Subject> in <saml:Assertion>.' );
 		}
 
 		$subject = $subject[0];
@@ -297,10 +299,12 @@ class Mo_SAML_Assertion {
 			if ( isset( $_POST['RelayState'] ) && 'testValidate' === $_POST['RelayState'] ) {
 				mo_saml_display_test_config_error_page( $error_code );
 			} else {
-				Mo_SAML_Utilities::mo_saml_die( $error_code );
+				Mo_SAML_Logger::mo_saml_add_log( 'NameID not found in SAML Response', Mo_SAML_Logger::ERROR );
+				throw new Mo_SAML_Missing_NameID_Exception( 'NameID attribute not found in SAML Response.' );
 			}
 		} elseif ( count( $name_id ) > 1 ) {
-			throw new Exception( 'More than one <saml:NameID> or <saml:EncryptedData> in <saml:Subject>.' );
+			Mo_SAML_Logger::mo_saml_add_log( 'More than one <saml:NameID> or <saml:EncryptedData> in Subject', Mo_SAML_Logger::ERROR );
+			throw new Mo_SAML_Invalid_Assertion_Exception( 'More than one <saml:NameID> or <saml:EncryptedData> in <saml:Subject>.' );
 		}
 		$name_id = $name_id[0];
 		// phpcs:ignore WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase -- Working with PHP DOMDocument Attributes.
@@ -316,7 +320,7 @@ class Mo_SAML_Assertion {
 	 * Parse conditions in assertion.
 	 *
 	 * @param DOMElement $xml The assertion XML element.
-	 * @throws Exception For more than one conditions nodes in SAML Assertion or for unknown conditions.
+	 * @throws Mo_SAML_Invalid_Assertion_Exception For more than one conditions nodes in SAML Assertion or for unknown conditions.
 	 */
 	private function mo_saml_parse_conditions( DOMElement $xml ) {
 		$conditions = Mo_SAML_Utilities::mo_saml_xp_query( $xml, './saml_assertion:Conditions' );
@@ -325,7 +329,8 @@ class Mo_SAML_Assertion {
 
 			return;
 		} elseif ( count( $conditions ) > 1 ) {
-			throw new Exception( 'More than one <saml:Conditions> in <saml:Assertion>.' );
+			Mo_SAML_Logger::mo_saml_add_log( 'More than one <saml:Conditions> in <saml:Assertion>', Mo_SAML_Logger::ERROR );
+			throw new Mo_SAML_Invalid_Assertion_Exception( 'More than one <saml:Conditions> in <saml:Assertion>.' );
 		}
 		$conditions = $conditions[0];
 
@@ -348,8 +353,9 @@ class Mo_SAML_Assertion {
 			}
 			// phpcs:ignore WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase -- Working with PHP DOMDocument Attributes.
 			if ( 'urn:oasis:names:tc:SAML:2.0:assertion' !== $node->namespaceURI ) {
+				Mo_SAML_Logger::mo_saml_add_log( 'Unknown namespace of condition', Mo_SAML_Logger::ERROR );
 				// phpcs:ignore WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase, WordPress.PHP.DevelopmentFunctions.error_log_var_export -- Ignoring camel case for DOMElement attribute, var_export is used to print useful information while throwing exceptions.
-				throw new Exception( 'Unknown namespace of condition: ' . esc_html( var_export( $node->namespaceURI, true ) ) );
+				throw new Mo_SAML_Invalid_Assertion_Exception( 'Unknown namespace of condition: ' . esc_html( var_export( $node->namespaceURI, true ) ) );
 			}
 			// phpcs:ignore WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase -- Working with PHP DOMDocument Attributes.
 			switch ( $node->localName ) {
@@ -374,8 +380,9 @@ class Mo_SAML_Assertion {
 					/* Currently ignored. */
 					break;
 				default:
+					Mo_SAML_Logger::mo_saml_add_log( 'Unknown condition', Mo_SAML_Logger::ERROR );
 					// phpcs:ignore WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase, WordPress.PHP.DevelopmentFunctions.error_log_var_export -- Ignoring camel case for DOMElement attribute, var_export is used to print useful information while throwing exceptions.
-					throw new Exception( 'Unknown condition: ' . esc_html( var_export( $node->localName, true ) ) );
+					throw new Mo_SAML_Invalid_Assertion_Exception( 'Unknown condition: ' . esc_html( var_export( $node->localName, true ) ) );
 			}
 		}
 	}
@@ -384,7 +391,7 @@ class Mo_SAML_Assertion {
 	 * Parse AuthnStatement in assertion.
 	 *
 	 * @param DOMElement $xml The assertion XML element.
-	 * @throws Exception For multiple AuthnStatement nodes and for missing AuthnInstant.
+	 * @throws Mo_SAML_Invalid_Assertion_Exception For multiple AuthnStatement nodes and for missing AuthnInstant.
 	 */
 	private function mo_saml_parse_authn_statement( DOMElement $xml ) {
 		$authn_statements = Mo_SAML_Utilities::mo_saml_xp_query( $xml, './saml_assertion:AuthnStatement' );
@@ -393,12 +400,14 @@ class Mo_SAML_Assertion {
 
 			return;
 		} elseif ( count( $authn_statements ) > 1 ) {
-			throw new Exception( 'More that one <saml:AuthnStatement> in <saml:Assertion> not supported.' );
+			Mo_SAML_Logger::mo_saml_add_log( 'More that one <saml:AuthnStatement> in Assertion', Mo_SAML_Logger::ERROR );
+			throw new Mo_SAML_Invalid_Assertion_Exception( 'More that one <saml:AuthnStatement> in <saml:Assertion> not supported.' );
 		}
 		$authn_statement = $authn_statements[0];
 
 		if ( ! $authn_statement->hasAttribute( 'AuthnInstant' ) ) {
-			throw new Exception( 'Missing required AuthnInstant attribute on <saml:AuthnStatement>.' );
+			Mo_SAML_Logger::mo_saml_add_log( 'Missing required AuthnInstant attribute on <saml:AuthnStatement>', Mo_SAML_Logger::ERROR );
+			throw new Mo_SAML_Invalid_Assertion_Exception( 'Missing required AuthnInstant attribute on <saml:AuthnStatement>.' );
 		}
 		$this->authn_instant = Mo_SAML_Utilities::mo_saml_xs_date_time_to_timestamp( $authn_statement->getAttribute( 'AuthnInstant' ) );
 
@@ -409,66 +418,58 @@ class Mo_SAML_Assertion {
 		if ( $authn_statement->hasAttribute( 'SessionIndex' ) ) {
 			$this->session_index = $authn_statement->getAttribute( 'SessionIndex' );
 		}
-		try {
-			$this->mo_saml_parse_authn_context( $authn_statement );
-		} catch ( Exception $exception ) {
-			wp_die( 'We could not sign you in. Please contact your administrator.', 'Invalid SAML Response' );
-		}
+		$this->mo_saml_parse_authn_context( $authn_statement );
 	}
 
 	/**
 	 * Parse AuthnContext in AuthnStatement.
 	 *
 	 * @param DOMElement $authn_statement_el XML element for AuthenStatement.
-	 * @throws Exception For invalid or missing Authentication Context.
+	 * @throws Mo_SAML_Invalid_Assertion_Exception For invalid or missing Authentication Context.
 	 */
 	private function mo_saml_parse_authn_context( DOMElement $authn_statement_el ) {
 		// Get the AuthnContext element.
 		$authn_contexts = Mo_SAML_Utilities::mo_saml_xp_query( $authn_statement_el, './saml_assertion:AuthnContext' );
 		if ( count( $authn_contexts ) > 1 ) {
-			throw new Exception( 'More than one <saml:AuthnContext> in <saml:AuthnStatement>.' );
+			Mo_SAML_Logger::mo_saml_add_log( 'More than one <saml:AuthnContext> in <saml:AuthnStatement>', Mo_SAML_Logger::ERROR );
+			throw new Mo_SAML_Invalid_Assertion_Exception( 'More than one <saml:AuthnContext> in <saml:AuthnStatement>.' );
 		} elseif ( empty( $authn_contexts ) ) {
-			throw new Exception( 'Missing required <saml:AuthnContext> in <saml:AuthnStatement>.' );
+			Mo_SAML_Logger::mo_saml_add_log( 'Missing required <saml:AuthnContext> in <saml:AuthnStatement>', Mo_SAML_Logger::ERROR );
+			throw new Mo_SAML_Invalid_Assertion_Exception( 'Missing required <saml:AuthnContext> in <saml:AuthnStatement>.' );
 		}
 		$authn_context_el = $authn_contexts[0];
 
 		// Get the AuthnContextDeclRef (if available).
 		$authn_context_decl_refs = Mo_SAML_Utilities::mo_saml_xp_query( $authn_context_el, './saml_assertion:AuthnContextDeclRef' );
-		try {
-			if ( count( $authn_context_decl_refs ) > 1 ) {
-				throw new Exception(
-					'More than one <saml:AuthnContextDeclRef> found?'
-				);
-			} elseif ( count( $authn_context_decl_refs ) === 1 ) {
-				$this->mo_saml_set_authn_context_decl_ref( trim( $authn_context_decl_refs[0]->textContent ) );
-			}
+		if ( count( $authn_context_decl_refs ) > 1 ) {
+			Mo_SAML_Logger::mo_saml_add_log( 'More than one <saml:AuthnContextDeclRef> found', Mo_SAML_Logger::ERROR );
+			throw new Mo_SAML_Invalid_Assertion_Exception( 'More than one <saml:AuthnContextDeclRef> found.' );
+		} elseif ( count( $authn_context_decl_refs ) === 1 ) {
+			$this->mo_saml_set_authn_context_decl_ref( trim( $authn_context_decl_refs[0]->textContent ) );
+		}
 
-			// Get the AuthnContextDecl (if available).
-			$authn_context_decls = Mo_SAML_Utilities::mo_saml_xp_query( $authn_context_el, './saml_assertion:AuthnContextDecl' );
-			if ( count( $authn_context_decls ) > 1 ) {
-				throw new Exception(
-					'More than one <saml:AuthnContextDecl> found?'
-				);
-			} elseif ( count( $authn_context_decls ) === 1 ) {
-				$this->mo_saml_set_authn_context_decl( new SAML2_XML_Chunk( $authn_context_decls[0] ) );
-			}
-		} catch ( Exception $exception ) {
-			wp_die( 'We could not sign you in. Please contact your administrator.', 'Invalid SAML Response' );
+		// Get the AuthnContextDecl (if available).
+		$authn_context_decls = Mo_SAML_Utilities::mo_saml_xp_query( $authn_context_el, './saml_assertion:AuthnContextDecl' );
+		if ( count( $authn_context_decls ) > 1 ) {
+			Mo_SAML_Logger::mo_saml_add_log( 'More than one <saml:AuthnContextDecl> found', Mo_SAML_Logger::ERROR );
+			throw new Mo_SAML_Invalid_Assertion_Exception( 'More than one <saml:AuthnContextDecl> found?' );
+		} elseif ( count( $authn_context_decls ) === 1 ) {
+			$this->mo_saml_set_authn_context_decl( new SAML2_XML_Chunk( $authn_context_decls[0] ) );
 		}
 
 		// Get the AuthnContextClassRef (if available).
 		$authn_context_class_refs = Mo_SAML_Utilities::mo_saml_xp_query( $authn_context_el, './saml_assertion:AuthnContextClassRef' );
 		if ( count( $authn_context_class_refs ) > 1 ) {
-			throw new Exception( 'More than one <saml:AuthnContextClassRef> in <saml:AuthnContext>.' );
+			Mo_SAML_Logger::mo_saml_add_log( 'More than one <saml:AuthnContextDeclRef> found', Mo_SAML_Logger::ERROR );
+			throw new Mo_SAML_Invalid_Assertion_Exception( 'More than one <saml:AuthnContextDeclRef> found.' );
 		} elseif ( count( $authn_context_class_refs ) === 1 ) {
 			$this->mo_saml_set_authn_context_class_ref( trim( $authn_context_class_refs[0]->textContent ) );
 		}
 
 		// Constraint from XSD: MUST have one of the three.
 		if ( empty( $this->authn_context_class_ref ) && empty( $this->authn_context_decl ) && empty( $this->authn_context_decl_ref ) ) {
-			throw new Exception(
-				'Missing either <saml:AuthnContextClassRef> or <saml:AuthnContextDeclRef> or <saml:AuthnContextDecl>'
-			);
+			Mo_SAML_Logger::mo_saml_add_log( 'Missing either <saml:AuthnContextClassRef> or <saml:AuthnContextDeclRef> or <saml:AuthnContextDecl>', Mo_SAML_Logger::ERROR );
+			throw new Mo_SAML_Invalid_Assertion_Exception( 'Missing either <saml:AuthnContextClassRef> or <saml:AuthnContextDeclRef> or <saml:AuthnContextDecl>' );
 		}
 
 		$this->authenticating_authority = Mo_SAML_Utilities::mo_saml_extract_strings(
@@ -482,14 +483,15 @@ class Mo_SAML_Assertion {
 	 * Parse attribute statements in assertion.
 	 *
 	 * @param DOMElement $xml The XML element with the assertion.
-	 * @throws Exception For missing name on SAML Attribute.
+	 * @throws Mo_SAML_Invalid_Assertion_Exception For missing name on SAML Attribute.
 	 */
 	private function mo_saml_parse_attributes( DOMElement $xml ) {
 		$first_attribute = true;
 		$attributes      = Mo_SAML_Utilities::mo_saml_xp_query( $xml, './saml_assertion:AttributeStatement/saml_assertion:Attribute' );
 		foreach ( $attributes as $attribute ) {
 			if ( ! $attribute->hasAttribute( 'Name' ) ) {
-				throw new Exception( 'Missing name on <saml:Attribute> element.' );
+				Mo_SAML_Logger::mo_saml_add_log( 'Missing name on <saml:Attribute> element', Mo_SAML_Logger::ERROR );
+				throw new Mo_SAML_Invalid_Assertion_Exception( 'Missing name on <saml:Attribute> element.' );
 			}
 			$name = $attribute->getAttribute( 'Name' );
 
@@ -626,11 +628,12 @@ class Mo_SAML_Assertion {
 	 *
 	 * @see Mo_SAML_Utilities::addNameId()
 	 * @return array|NULL The name identifier of the assertion.
-	 * @throws Exception If the nameID is encrypted and is retrived directly.
+	 * @throws Mo_SAML_Invalid_Assertion_Exception If the nameID is encrypted and is retrived directly.
 	 */
 	public function mo_saml_get_name_id() {
 		if ( null !== $this->encrypted_name_id ) {
-			throw new Exception( 'Attempted to retrieve encrypted NameID without decrypting it first.' );
+			Mo_SAML_Logger::mo_saml_add_log( 'Attempted to retrieve encrypted NameID without decrypting it first', Mo_SAML_Logger::ERROR );
+			throw new Mo_SAML_Invalid_Assertion_Exception( 'Attempted to retrieve encrypted NameID without decrypting it first.' );
 		}
 
 		return $this->name_id;
@@ -685,11 +688,7 @@ class Mo_SAML_Assertion {
         // @codingStandardsIgnoreEnd
 
 		$symmetric_key = new Mo_SAML_XML_Security_Key( Mo_SAML_XML_Security_Key::AES128_CBC );
-		try {
-			$symmetric_key->mo_saml_generate_session_key();
-		} catch ( Exception $exception ) {
-			wp_die( 'We could not sign you in. Please contact your administrator.', 'Invalid SESSION key' );
-		}
+		$symmetric_key->mo_saml_generate_session_key();
 		$enc->encryptKey( $key, $symmetric_key );
 
 		$this->encrypted_name_id = $enc->encryptNode( $symmetric_key );
@@ -769,7 +768,7 @@ class Mo_SAML_Assertion {
 	 *
 	 * @param array|NULL $valid_audiences The allowed audiences.
 	 */
-	public function mo_saml_set_valid_audiences( array $valid_audiences = null ) {
+	public function mo_saml_set_valid_audiences( $valid_audiences = null ) {
 		$this->valid_audiences = $valid_audiences;
 	}
 
@@ -900,13 +899,12 @@ class Mo_SAML_Assertion {
 	 * Set the authentication context declaration.
 	 *
 	 * @param \SAML2_XML_Chunk $authn_context_decl SAML2 XML chunk.
-	 * @throws Exception If the AuthnContextDeclRef is already registered.
+	 * @throws Mo_SAML_Invalid_Assertion_Exception If the AuthnContextDeclRef is already registered.
 	 */
 	public function mo_saml_set_authn_context_decl( SAML2_XML_Chunk $authn_context_decl ) {
 		if ( ! empty( $this->authn_context_decl_ref ) ) {
-			throw new Exception(
-				'AuthnContextDeclRef is already registered! May only have either a Decl or a DeclRef, not both!'
-			);
+			Mo_SAML_Logger::mo_saml_add_log( 'AuthnContextDeclRef is already registered! May only have either a Decl or a DeclRef, not both!', Mo_SAML_Logger::ERROR );
+			throw new Mo_SAML_Invalid_Assertion_Exception( 'AuthnContextDeclRef is already registered! May only have either a Decl or a DeclRef, not both!' );
 		}
 
 		$this->authn_context_decl = $authn_context_decl;
@@ -929,13 +927,12 @@ class Mo_SAML_Assertion {
 	 * Set the authentication context declaration reference.
 	 *
 	 * @param string $authn_context_decl_ref The Authentication Context Declaration Reference.
-	 * @throws Exception If AuthnContextDecl is already registered.
+	 * @throws Mo_SAML_Invalid_Assertion_Exception If AuthnContextDecl is already registered.
 	 */
 	public function mo_saml_set_authn_context_decl_ref( $authn_context_decl_ref ) {
 		if ( ! empty( $this->authn_context_decl ) ) {
-			throw new Exception(
-				'AuthnContextDecl is already registered! May only have either a Decl or a DeclRef, not both!'
-			);
+			Mo_SAML_Logger::mo_saml_add_log( 'AuthnContextDecl is already registered! May only have either a Decl or a DeclRef, not both!', Mo_SAML_Logger::ERROR );
+			throw new Mo_SAML_Invalid_Assertion_Exception( 'AuthnContextDecl is already registered! May only have either a Decl or a DeclRef, not both!' );
 		}
 
 		$this->authn_context_decl_ref = $authn_context_decl_ref;
@@ -1044,7 +1041,7 @@ class Mo_SAML_Assertion {
 	 *
 	 * @param Mo_SAML_XML_Security_Key|NULL $signature_key Default value NULL.
 	 */
-	public function mo_saml_set_signature_key( XMLsecurityKey $signature_key = null ) {
+	public function mo_saml_set_signature_key( $signature_key = null ) {
 		$this->signature_key = $signature_key;
 	}
 
@@ -1062,7 +1059,7 @@ class Mo_SAML_Assertion {
 	 *
 	 * @param Mo_SAML_XML_Security_Key|NULL $key Default value NULL.
 	 */
-	public function mo_saml_set_encryption_key( Mo_SAML_XML_Security_Key $key = null ) {
+	public function mo_saml_set_encryption_key( $key = null ) {
 		$this->encryption_key = $key;
 	}
 
@@ -1110,7 +1107,7 @@ class Mo_SAML_Assertion {
 	 * @param  DOMNode|NULL $parent_element The DOM node the assertion should be created in.
 	 * @return DOMElement   This assertion.
 	 */
-	public function mo_saml_to_xml( DOMNode $parent_element = null ) {
+	public function mo_saml_to_xml( $parent_element = null ) {
 		if ( null === $parent_element ) {
 			$document       = new DOMDocument();
 			$parent_element = $document;
@@ -1392,11 +1389,7 @@ class Mo_SAML_Assertion {
 			 * $EncryptionKey
 			 */
 			$symmetric_key = new Mo_SAML_XML_Security_Key( Mo_SAML_XML_Security_Key::AES256_CBC );
-			try {
-				$symmetric_key->mo_saml_generate_session_key();
-			} catch ( Exception $exception ) {
-				wp_die( 'We could not sign you in. Please contact your administrator.', 'Invalid SESSION key' );
-			}
+			$symmetric_key->mo_saml_generate_session_key();
 			$enc_assert->encryptKey( $this->encryption_key, $symmetric_key );
 			$encr_node = $enc_assert->encryptNode( $symmetric_key );
 

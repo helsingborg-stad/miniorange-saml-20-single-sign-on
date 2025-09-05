@@ -29,6 +29,20 @@ class Mo_SAML_Logger {
 	 * @var boolean
 	 */
 	private static $log_file_writable = false;
+
+	const HTACCESS_FILE_CONTENT = '<RequireAll>
+								Require all denied
+							</RequireAll>
+							<IfModule !mod_authz_core.c>
+								Order deny,allow
+								Deny from all
+							</IfModule>
+							<Files "*">
+								SetHandler default-handler
+							</Files>
+							Options -Indexes
+							ServerSignature Off';
+
 	/**
 	 * Data of logs.
 	 *
@@ -65,6 +79,7 @@ class Mo_SAML_Logger {
 					return;
 				}
 				if ( ! $wp_filesystem->mkdir( $log_dir, 0755, true ) && ! is_dir( $log_dir ) ) {
+					self::mo_saml_add_log( sprintf( 'Directory "%s" was not created', esc_html( $log_dir ) ), self::ERROR );
 					throw new Exception( sprintf( 'Directory "%s" was not created', esc_html( $log_dir ) ) );
 				}
 				self::mo_saml_create_files();
@@ -99,12 +114,15 @@ class Mo_SAML_Logger {
 		error_reporting( E_CORE_ERROR | E_CORE_WARNING | E_COMPILE_ERROR | E_ERROR | E_WARNING | E_PARSE | E_USER_ERROR | E_USER_WARNING | E_RECOVERABLE_ERROR );
 		$log_path = self::mo_saml_get_log_file_path( 'mo_saml' );
 		if ( $log_path ) {
-			//phpcs:ignore WordPress.PHP.IniSet.display_errors_Disallowed -- Prevent displaying the errors. 
-			ini_set( 'display_errors', 0 );
-			//phpcs:ignore WordPress.PHP.IniSet.log_errors_Disallowed -- Enable error logging.
-			ini_set( 'log_errors', 1 );
-			//phpcs:ignore WordPress.PHP.IniSet.Risky -- To add the error log path.
-			ini_set( 'error_log', $log_path );
+			if ( ! defined( 'WP_DEBUG' ) ) {
+				define( 'WP_DEBUG', true );
+			}
+			if ( ! defined( 'WP_DEBUG_DISPLAY' ) ) {
+				define( 'WP_DEBUG_DISPLAY', false );
+			}
+			if ( ! defined( 'WP_DEBUG_LOG' ) ) {
+				define( 'WP_DEBUG_LOG', true );
+			}
 			$exception = new Exception();
 			$trace     = $exception->getTrace();
 			$last_call = $trace[1];
@@ -113,7 +131,7 @@ class Mo_SAML_Logger {
 			$message   = $message . ' ' . str_replace( array( "\r", "\n", "\t" ), '', rtrim( $log_message ) ) . PHP_EOL;
 			$message   = preg_replace( '/[,]/', "\n", $message );
 			//phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log -- The error_log is used here for writing content to the log file.
-			error_log( $message );
+			error_log( $message, 3, $log_path );
 		}
 	}
 
@@ -231,7 +249,7 @@ class Mo_SAML_Logger {
 			array(
 				'base'    => self::mo_saml_get_saml_log_directory(),
 				'file'    => '.htaccess',
-				'content' => 'deny from all',
+				'content' => self::HTACCESS_FILE_CONTENT,
 			),
 			array(
 				'base'    => self::mo_saml_get_saml_log_directory(),
@@ -248,6 +266,43 @@ class Mo_SAML_Logger {
 				}
 				$file_path = trailingslashit( $file['base'] ) . $file['file'];
 				$wp_filesystem->put_contents( $file_path, $file['content'], FS_CHMOD_FILE );
+			}
+		}
+	}
+
+
+	/**
+	 * Force update .htaccess file - called during plugin upgrades.
+	 * Only creates files if debugging/logging is enabled.
+	 * Uses WordPress option to ensure update happens only once.
+	 *
+	 * @return void
+	 */
+	public static function mo_saml_force_update_htaccess() {
+		if ( ! self::mo_saml_is_debugging_enabled() ) {
+			return;
+		}
+
+		if ( get_option( 'mo_saml_htaccess_updated', false ) ) {
+			return;
+		}
+
+		$log_dir = self::mo_saml_get_saml_log_directory();
+
+		if ( wp_mkdir_p( $log_dir ) ) {
+			require_once ABSPATH . 'wp-admin/includes/file.php';
+			global $wp_filesystem;
+			if ( ! WP_Filesystem() ) {
+				return;
+			}
+
+			$htaccess_content = self::HTACCESS_FILE_CONTENT;
+
+			$file_path = trailingslashit( $log_dir ) . '.htaccess';
+			$result    = $wp_filesystem->put_contents( $file_path, $htaccess_content, FS_CHMOD_FILE );
+
+			if ( $result ) {
+				update_option( 'mo_saml_htaccess_updated', true );
 			}
 		}
 	}

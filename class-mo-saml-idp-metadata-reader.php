@@ -37,7 +37,7 @@ class Mo_SAML_IDP_Metadata_Reader {
 	 *
 	 * @param DOMNode $xml reads metadata descriptors.
 	 */
-	public function __construct( DOMNode $xml = null ) {
+	public function __construct( $xml = null ) {
 
 		$this->identity_providers = array();
 		$this->service_providers  = array();
@@ -133,9 +133,9 @@ class Mo_SAML_Identity_Providers {
 	 * Constructor to initialize variables
 	 *
 	 * @param DOMElement $xml reads metadata.
-	 * @throws Exception Missing idpssodescriptor.
+	 * @throws Mo_SAML_Metadata_Reader_Exception Missing idpssodescriptor.
 	 */
-	public function __construct( DOMElement $xml = null ) {
+	public function __construct( $xml = null ) {
 
 		$this->idp_name               = '';
 		$this->login_details          = array();
@@ -154,9 +154,11 @@ class Mo_SAML_Identity_Providers {
 		$idp_sso_descriptor = Mo_SAML_Utilities::mo_saml_xp_query( $xml, './saml_metadata:IDPSSODescriptor' );
 
 		if ( count( $idp_sso_descriptor ) > 1 ) {
-			throw new Exception( 'More than one <IDPSSODescriptor> in <EntityDescriptor>.' );
+			Mo_SAML_Logger::mo_saml_add_log( 'More than one <IDPSSODescriptor> in <EntityDescriptor>', Mo_SAML_Logger::ERROR );
+			throw new Mo_SAML_Metadata_Reader_Exception( 'More than one <IDPSSODescriptor> in <EntityDescriptor>.' );
 		} elseif ( empty( $idp_sso_descriptor ) ) {
-			throw new Exception( 'Missing required <IDPSSODescriptor> in <EntityDescriptor>.' );
+			Mo_SAML_Logger::mo_saml_add_log( 'Missing required <IDPSSODescriptor> in <EntityDescriptor>', Mo_SAML_Logger::ERROR );
+			throw new Mo_SAML_Metadata_Reader_Exception( 'Missing required <IDPSSODescriptor> in <EntityDescriptor>.' );
 		}
 		$idp_sso_descriptor_el = $idp_sso_descriptor[0];
 

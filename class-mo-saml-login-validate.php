@@ -24,16 +24,22 @@ use RobRichards\XMLSecLibs\Mo_SAML_XML_Security_Key;
 class Mo_SAML_Login_Validate {
 
 	/**
-	 * The Constructor for the Mo_SAML_Login_Validate class. This takes care of initializing the hooks used by the plugin.
+	 * Constructor for the Mo_SAML_Login_Validate class.
+	 * Initializes and defines all functionality related to login processes
+	 * and handling requests received from the plugin.
 	 */
 	public function __construct() {
-		add_action( 'init', array( $this, 'mo_saml_login_validate' ) );
+		$this->mo_saml_login_validate();
 	}
 
 
 	/**
 	 * Function to handle all incoming request with 'option' & "SAMLResponse Parameter"
 	 *
+	 * @throws Mo_SAML_Signature_Not_Found_Exception For missing signature.
+	 * @throws Mo_SAML_Cert_Mismatch_Exception For certificate mismatch.
+	 * @throws Mo_SAML_Cert_Mismatch_Encoding_Exception For certificate mismatch due to character encoding.
+	 * @throws Mo_SAML_Invalid_Assertion_Exception For invalid assertion.
 	 * @return void
 	 */
 	public function mo_saml_login_validate() {
@@ -84,19 +90,6 @@ class Mo_SAML_Login_Validate {
 				if ( empty( $sp_entity_id ) ) {
 					$sp_entity_id = $sp_base_url . '/wp-content/plugins/miniorange-saml-20-single-sign-on/';
 				}
-// Make it possible to use one idp config with subdir installs.
-if (is_multisite() && defined('SUBDOMAIN_INSTALL') && !SUBDOMAIN_INSTALL) {
-    $replaceFrom = site_url(null, 'relative');
-    $replaceTo = (function() {
-        switch_to_blog(get_main_site_id());
-        $carry = site_url(null, 'relative');
-        restore_current_blog();
-        return $carry;
-    })();
-
-    $acs_url = str_replace($replaceFrom, $replaceTo, $acs_url);
-    $sp_entity_id = str_replace($replaceFrom, $replaceTo, $sp_entity_id);
-}
 
 				$log_message = array(
 					'ssoUrl'         => $sso_url,
@@ -140,13 +133,8 @@ if (is_multisite() && defined('SUBDOMAIN_INSTALL') && !SUBDOMAIN_INSTALL) {
 			//phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.obfuscation_base64_decode -- SAML response is base64 encoded.
 			$saml_response = base64_decode( $saml_response );
 
-			$document              = new DOMDocument();
-			$load_saml_resp_result = $document->loadXML( $saml_response );
-			if ( ! $load_saml_resp_result ) {
-				$error_code = Mo_Saml_Options_Enum_Error_Codes::$error_codes['WPSAMLERR017'];
-				Mo_SAML_Logger::mo_saml_add_log( 'Recieved an invalid XML from the IdP in the form of SAML Response', Mo_SAML_Logger::ERROR );
-				Mo_SAML_Utilities::mo_saml_die( $error_code );
-			}
+
+			$document = Mo_SAML_Utilities::mo_saml_safe_load_xml( $saml_response );
 			//phpcs:ignore WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase -- firstChild property is Method of DOMDocument.
 			$saml_response_xml = $document->firstChild;
 			//phpcs:ignore WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase -- documentElement property is Method of DOMDocument.
@@ -188,7 +176,7 @@ if (is_multisite() && defined('SUBDOMAIN_INSTALL') && !SUBDOMAIN_INSTALL) {
 					mo_saml_display_test_config_error_page( $error_code );
 					exit;
 				} else {
-					Mo_SAML_Utilities::mo_saml_die( $error_code );
+					throw new Mo_SAML_Signature_Not_Found_Exception( 'No signature was found in the SAML Response or Assertion.' );
 				}
 			}
 			if ( is_array( $cert_from_plugin ) ) {
@@ -238,7 +226,7 @@ if (is_multisite() && defined('SUBDOMAIN_INSTALL') && !SUBDOMAIN_INSTALL) {
 						wp_safe_redirect( admin_url() . '?page=mo_saml_settings&option=test_config_error_wpsamlerr004' );
 						exit;
 					} else {
-						Mo_SAML_Utilities::mo_saml_die( $error_code );
+						throw new Mo_SAML_Cert_Mismatch_Exception( 'Certificate mismatch.' );
 					}
 				} elseif ( 'checked' === $saml_is_encoding_enabled ) {
 					Mo_SAML_Logger::mo_saml_add_log( Mo_Saml_Error_Log::mo_saml_write_message( 'LOGIN_WIDGET_CERT_NOT_MATCHED_ENCODED' ), Mo_SAML_Logger::ERROR );
@@ -247,11 +235,11 @@ if (is_multisite() && defined('SUBDOMAIN_INSTALL') && !SUBDOMAIN_INSTALL) {
 						wp_safe_redirect( admin_url() . '?page=mo_saml_settings&option=test_config_error_wpsamlerr012' );
 						exit;
 					} else {
-						Mo_SAML_Utilities::mo_saml_die( $error_code );
+						throw new Mo_SAML_Cert_Mismatch_Encoding_Exception( 'Certificate mismatch due to character encoding.' );
 					}
 				} else {
-					Mo_SAML_Logger::mo_saml_add_log( Mo_Saml_Error_Log::mo_saml_write_message( 'LOGIN_WIDGET_UNABLE_TO_PROCESS_RESPONSE' ), Mo_SAML_Logger::ERROR );
-					wp_die( 'Unable to process the SAML response' );
+					Mo_SAML_Logger::mo_saml_add_log( 'Unable to process the SAML Response', Mo_SAML_Logger::ERROR );
+					throw new Mo_SAML_Invalid_Assertion_Exception( 'Unable to process the SAML Response.' );
 				}
 			}
 
@@ -267,11 +255,7 @@ if (is_multisite() && defined('SUBDOMAIN_INSTALL') && !SUBDOMAIN_INSTALL) {
 			}
 			Mo_SAML_Utilities::mo_saml_validate_issuer_and_audience( $saml_response, $sp_enity_id, $issuer, $relay_state );
 
-			try {
-				$ssoemail = current( current( $saml_response->mo_saml_get_assertions() )->mo_saml_get_name_id() );
-			} catch ( Exception $exception ) {
-				wp_die( 'We could not sign you in. Please contact your administrator.', 'Encrypted NameID' );
-			}
+			$ssoemail        = current( current( $saml_response->mo_saml_get_assertions() )->mo_saml_get_name_id() );
 			$attrs           = current( $saml_response->mo_saml_get_assertions() )->mo_saml_get_attributes();
 			$attrs['NameID'] = array( '0' => sanitize_text_field( $ssoemail ) );
 			$session_index   = current( $saml_response->mo_saml_get_assertions() )->mo_saml_get_session_index();
@@ -319,70 +303,64 @@ if (is_multisite() && defined('SUBDOMAIN_INSTALL') && !SUBDOMAIN_INSTALL) {
 	 * @return void
 	 */
 	private function mo_saml_check_mapping( $attrs, $relay_state ) {
-		try {
-			// Get encrypted user_email.
-			$email_attribute                           = get_option( Mo_Saml_Options_Enum_Attribute_Mapping::ATTRIBUTE_EMAIL );
-			$mo_saml_identity_provider_identifier_name = get_option( Mo_Saml_Options_Enum_Service_Provider::IDENTITY_PROVIDER_NAME ) ? get_option( Mo_Saml_Options_Enum_Service_Provider::IDENTITY_PROVIDER_NAME ) : '';
-			if ( ! empty( $mo_saml_identity_provider_identifier_name ) && 'Azure B2C' === $mo_saml_identity_provider_identifier_name ) {
-				$email_attribute = 'http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress';
-			}
-			$username_attribute = get_option( Mo_Saml_Options_Enum_Attribute_Mapping::ATTRIBUTE_USERNAME );
-			$first_name         = get_option( Mo_Saml_Options_Enum_Attribute_Mapping::ATTRIBUTE_FIRST_NAME );
-			$last_name          = get_option( Mo_Saml_Options_Enum_Attribute_Mapping::ATTRIBUTE_LAST_NAME );
-			$group_name         = get_option( Mo_Saml_Options_Enum_Attribute_Mapping::ATTRIBUTE_GROUP_NAME );
-			$default_role       = get_option( Mo_Saml_Options_Enum_Role_Mapping::ROLE_DEFAULT_ROLE );
-			$check_if_match_by  = get_option( Mo_Saml_Options_Enum_Attribute_Mapping::ATTRIBUTE_ACCOUNT_MATCHER );
-			$user_email         = '';
-			$user_name          = '';
+		// Get encrypted user_email.
+		$email_attribute                           = get_option( Mo_Saml_Options_Enum_Attribute_Mapping::ATTRIBUTE_EMAIL );
+		$mo_saml_identity_provider_identifier_name = get_option( Mo_Saml_Options_Enum_Service_Provider::IDENTITY_PROVIDER_NAME ) ? get_option( Mo_Saml_Options_Enum_Service_Provider::IDENTITY_PROVIDER_NAME ) : '';
+		if ( ! empty( $mo_saml_identity_provider_identifier_name ) && 'Azure B2C' === $mo_saml_identity_provider_identifier_name ) {
+			$email_attribute = 'http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress';
+		}
+		$username_attribute = get_option( Mo_Saml_Options_Enum_Attribute_Mapping::ATTRIBUTE_USERNAME );
+		$first_name         = get_option( Mo_Saml_Options_Enum_Attribute_Mapping::ATTRIBUTE_FIRST_NAME );
+		$last_name          = get_option( Mo_Saml_Options_Enum_Attribute_Mapping::ATTRIBUTE_LAST_NAME );
+		$group_name         = get_option( Mo_Saml_Options_Enum_Attribute_Mapping::ATTRIBUTE_GROUP_NAME );
+		$default_role       = get_option( Mo_Saml_Options_Enum_Role_Mapping::ROLE_DEFAULT_ROLE );
+		$check_if_match_by  = get_option( Mo_Saml_Options_Enum_Attribute_Mapping::ATTRIBUTE_ACCOUNT_MATCHER );
+		$user_email         = '';
+		$user_name          = '';
 
-			// Attribute mapping. Check if Match/Create user is by username/email:.
-			if ( ! empty( $attrs ) ) {
-				if ( ! empty( $attrs[ $first_name ] ) ) {
-					$first_name = $attrs[ $first_name ][0];
-				} else {
-					$first_name = '';
-				}
-
-				if ( ! empty( $attrs[ $last_name ] ) ) {
-					$last_name = $attrs[ $last_name ][0];
-				} else {
-					$last_name = '';
-				}
-
-				if ( ! empty( $attrs[ $username_attribute ] ) ) {
-					$user_name = $attrs[ $username_attribute ][0];
-				} else {
-					$user_name = $attrs['NameID'][0];
-				}
-
-				if ( ! empty( $attrs[ $email_attribute ] ) ) {
-					$user_email = $attrs[ $email_attribute ][0];
-				} else {
-					$user_email = $attrs['NameID'][0];
-				}
-
-				if ( ! empty( $attrs[ $group_name ] ) ) {
-					$group_name = $attrs[ $group_name ];
-				} else {
-					$group_name = array();
-				}
-
-				if ( empty( $check_if_match_by ) ) {
-					$check_if_match_by = 'email';
-				}
-			}
-
-			if ( 'testValidate' === $relay_state ) {
-				update_option( Mo_Saml_Options_Test_Configuration::TEST_CONFIG_ERROR_LOG, 'Test successful' );
-				update_option( Mo_Saml_Sso_Constants::MO_SAML_TEST_STATUS, 1 );
-				$this->mo_saml_show_test_result( $first_name, $last_name, $user_email, $group_name, $attrs );
+		// Attribute mapping. Check if Match/Create user is by username/email:.
+		if ( ! empty( $attrs ) ) {
+			if ( ! empty( $attrs[ $first_name ] ) ) {
+				$first_name = $attrs[ $first_name ][0];
 			} else {
-        do_action('mo_saml_user_attributes', $attrs);
-				$this->mo_saml_login_user( $user_email, $first_name, $last_name, $user_name, $group_name, $default_role, $relay_state, $check_if_match_by );
+				$first_name = '';
 			}
-		} catch ( Exception $e ) {
-			printf( 'An error occurred while processing the SAML Response.' );
-			exit;
+
+			if ( ! empty( $attrs[ $last_name ] ) ) {
+				$last_name = $attrs[ $last_name ][0];
+			} else {
+				$last_name = '';
+			}
+
+			if ( ! empty( $attrs[ $username_attribute ] ) ) {
+				$user_name = $attrs[ $username_attribute ][0];
+			} else {
+				$user_name = $attrs['NameID'][0];
+			}
+
+			if ( ! empty( $attrs[ $email_attribute ] ) ) {
+				$user_email = $attrs[ $email_attribute ][0];
+			} else {
+				$user_email = $attrs['NameID'][0];
+			}
+
+			if ( ! empty( $attrs[ $group_name ] ) ) {
+				$group_name = $attrs[ $group_name ];
+			} else {
+				$group_name = array();
+			}
+
+			if ( empty( $check_if_match_by ) ) {
+				$check_if_match_by = 'email';
+			}
+		}
+
+		if ( 'testValidate' === $relay_state ) {
+			update_option( Mo_Saml_Options_Test_Configuration::TEST_CONFIG_ERROR_LOG, 'Test successful' );
+			update_option( Mo_Saml_Sso_Constants::MO_SAML_TEST_STATUS, 1 );
+			$this->mo_saml_show_test_result( $first_name, $last_name, $user_email, $group_name, $attrs );
+		} else {
+			$this->mo_saml_login_user( $user_email, $first_name, $last_name, $user_name, $group_name, $default_role, $relay_state, $check_if_match_by );
 		}
 	}
 
@@ -410,7 +388,7 @@ if (is_multisite() && defined('SUBDOMAIN_INSTALL') && !SUBDOMAIN_INSTALL) {
 		if ( ! empty( $user_email ) ) {
 			update_option( Mo_Saml_Options_Test_Configuration::TEST_CONFIG_ATTRS, $attrs );
 			echo '<div style="color: #3c763d;
-					background-color: #dff0d8; padding:2%;margin-bottom:20px;text-align:center; border:1px solid #AEDB9A; font-size:18pt; border-radius:10px;margin-top:17px;">TEST SUCCESSFUL</div>
+					background-color: #dff0d8; padding:2%;margin-bottom:20px;text-align:center; border:1px solid #AEDB9A; font-size:18pt; border-radius:10px;margin-top:17px;">' . esc_html__( 'TEST SUCCESSFUL', 'miniorange-saml-20-single-sign-on' ) . '</div>
 					<div style="display:block;text-align:center;margin-bottom:4%;"><svg class="animate" width="100" height="100">
 					<filter id="dropshadow" height="">
 					<feGaussianBlur in="SourceAlpha" stdDeviation="3" result="blur"></feGaussianBlur>
@@ -437,21 +415,24 @@ if (is_multisite() && defined('SUBDOMAIN_INSTALL') && !SUBDOMAIN_INSTALL) {
 				}
 				</style></div>';
 		} else {
-			echo '<div style="color: #a94442;background-color: #f2dede;padding: 15px;margin-bottom: 20px;text-align:center;border:1px solid #E6B3B2;font-size:18pt;">TEST FAILED</div>
-					<div style="color: #a94442;font-size:14pt; margin-bottom:20px;">WARNING: Some Attributes Did Not Match.</div>
+			echo '<div style="color: #a94442;background-color: #f2dede;padding: 15px;margin-bottom: 20px;text-align:center;border:1px solid #E6B3B2;font-size:18pt;">' . esc_html__( 'TEST FAILED', 'miniorange-saml-20-single-sign-on' ) . '</div>
+					<div style="color: #a94442;font-size:14pt; margin-bottom:20px;">' . esc_html__( 'WARNING: Some Attributes Did Not Match.', 'miniorange-saml-20-single-sign-on' ) . '</div>
 					<div style="display:block;text-align:center;margin-bottom:4%;"><img style="width:15%;"src="' . esc_url( plugin_dir_url( __FILE__ ) ) . 'images/wrong.webp"></div>';
 		}
 		$match_account_by = get_option( Mo_Saml_Options_Enum_Attribute_Mapping::ATTRIBUTE_ACCOUNT_MATCHER ) ? get_option( Mo_Saml_Options_Enum_Attribute_Mapping::ATTRIBUTE_ACCOUNT_MATCHER ) : 'email';
 		if ( strlen( $name_id ) > 60 ) {
-			echo '<p><font color="#FF0000" style="font-size:14pt;font-weight:bold">Warning: The NameID value is longer than 60 characters. User will not be created during SSO.</font></p>';
+			echo '<p><font color="#FF0000" style="font-size:14pt;font-weight:bold">' . esc_html__( 'Warning: The NameID value is longer than 60 characters. User will not be created during SSO.', 'miniorange-saml-20-single-sign-on' ) . '</font></p>';
 		} elseif ( 'email' === $match_account_by && ! filter_var( $name_id, FILTER_VALIDATE_EMAIL ) ) {
-			echo '<p><font color="#FF0000" style="font-size:14pt;font-weight:bold">Warning: The NameID value is not a valid Email ID</font></p>';
+			echo '<p><font color="#FF0000" style="font-size:14pt;font-weight:bold">' . esc_html__( 'Warning: The NameID value is not a valid Email ID', 'miniorange-saml-20-single-sign-on' ) . '</font></p>';
 		}
-		echo '<span style="font-size:14pt;"><b>Hello</b>, ' . esc_html( $user_email ) . '</span>';
+		echo '<span style="font-size:14pt;"><b>' . esc_html__( 'Hello', 'miniorange-saml-20-single-sign-on' ) . '</b>, ' . esc_html( $user_email ) . '</span>';
 
-		echo '<br/><p style="font-weight:bold;font-size:14pt;margin-left:1%;">Attributes Received:</p>
-					<table style="border-collapse:collapse;border-spacing:0; display:table;width:100%; font-size:14pt;word-break:break-all;">
-					<tr style="text-align:center;background:#d3e1ff;border:2.5px solid #ffffff";word-break:break-all;><td style="font-weight:bold;padding:2%;border-top-left-radius: 10px;border:2.5px solid #ffffff">ATTRIBUTE NAME</td><td style="font-weight:bold;padding:2%;border:2.5px solid #ffffff; word-wrap:break-word;border-top-right-radius:10px">ATTRIBUTE VALUE</td></tr>';
+		echo '<br/><p style="font-weight:bold;font-size:14pt;margin-left:1%;">' . esc_html__( 'Attributes Received:', 'miniorange-saml-20-single-sign-on' ) . '</p>
+				<table style="border-collapse:collapse;border-spacing:0; display:table;width:100%; font-size:14pt;word-break:break-all;">
+				<tr style="text-align:center;background:#d3e1ff;border:2.5px solid #ffffff";word-break:break-all;>
+					<td style="font-weight:bold;padding:2%;border-top-left-radius: 10px;border:2.5px solid #ffffff">' . esc_html__( 'ATTRIBUTE NAME', 'miniorange-saml-20-single-sign-on' ) . '</td>
+					<td style="font-weight:bold;padding:2%;border:2.5px solid #ffffff; word-wrap:break-word;border-top-right-radius:10px">' . esc_html__( 'ATTRIBUTE VALUE', 'miniorange-saml-20-single-sign-on' ) . '</td>
+				</tr>';
 
 		if ( ! empty( $attrs ) ) {
 			foreach ( $attrs as $key => $value ) {
@@ -464,14 +445,14 @@ if (is_multisite() && defined('SUBDOMAIN_INSTALL') && !SUBDOMAIN_INSTALL) {
 				echo "<tr><td style='border:2.5px solid #ffffff;padding:2%;background:#e9f0ff;'>" . esc_html( $key ) . "</td><td style='padding:2%;border:2.5px solid #ffffff;background:#e9f0ff;word-wrap:break-word;'>" . wp_kses( $attr_values, $allowed_html ) . '</td></tr>';
 			}
 		} else {
-			echo 'No Attributes Received.';
+			echo esc_html__( 'No Attributes Received.', 'miniorange-saml-20-single-sign-on' );
 		}
 		echo '</table></div>';
 		echo '<div style="margin:3%;display:block;text-align:center;">
 			<input style="padding:1%;width:250px;background: linear-gradient(0deg,rgb(14 42 71) 0,rgb(26 69 138) 100%)!important;cursor: pointer;font-size:15px;border-width: 1px;border-style: solid;border-radius: 3px;white-space: nowrap;box-sizing: border-box;border-color: #0073AA;box-shadow: 0px 1px 0px rgba(120, 200, 230, 0.6) inset;color: #FFF;"
-				type="button" value="Configure Attribute/Role Mapping" onClick="close_and_redirect_to_attribute_mapping();"> &nbsp;
-			<input style="padding:1%;width:250px;background: linear-gradient(0deg,rgb(14 42 71) 0,rgb(26 69 138) 100%)!important;cursor: pointer;font-size:15px;border-width: 1px;border-style: solid;border-radius: 3px;white-space: nowrap;box-sizing: border-box;border-color: #0073AA;box-shadow: 0px 1px 0px rgba(120, 200, 230, 0.6) inset;color: #FFF;
-			"type="button" value="Configure SSO Settings" onClick="close_and_redirect_to_redir_sso();"></div>
+				type="button" value="' . esc_attr__( 'Configure Attribute/Role Mapping', 'miniorange-saml-20-single-sign-on' ) . '" onClick="close_and_redirect_to_attribute_mapping();"> &nbsp;
+			<input style="padding:1%;width:250px;background: linear-gradient(0deg,rgb(14 42 71) 0,rgb(26 69 138) 100%)!important;cursor: pointer;font-size:15px;border-width: 1px;border-style: solid;border-radius: 3px;white-space: nowrap;box-sizing: border-box;border-color: #0073AA;box-shadow: 0px 1px 0px rgba(120, 200, 230, 0.6) inset;color: #FFF;"
+				type="button" value="' . esc_attr__( 'Configure SSO Settings', 'miniorange-saml-20-single-sign-on' ) . '" onClick="close_and_redirect_to_redir_sso();"></div>
 			
 			<script>
 				function close_and_redirect_to_attribute_mapping(){
@@ -531,7 +512,8 @@ if (is_multisite() && defined('SUBDOMAIN_INSTALL') && !SUBDOMAIN_INSTALL) {
 	 * @param string       $relay_state relay state parameter passed by IDP.
 	 *
 	 * @param string       $check_if_match_by default username, parameter from which users will be matched.
-	 *
+	 * @throws Mo_Saml_Username_Length_Limit_Exceeded_Exception For username length limit exceeded.
+	 * @throws Mo_Saml_User_Creation_Exception For user creation failed.
 	 * @return void
 	 */
 	private function mo_saml_login_user( $user_email, $first_name, $last_name, $user_name, $group_name, $default_role, $relay_state, $check_if_match_by ) {
@@ -557,12 +539,10 @@ if (is_multisite() && defined('SUBDOMAIN_INSTALL') && !SUBDOMAIN_INSTALL) {
 			if ( is_wp_error( $user_id ) ) {
 				if ( strlen( $user_name ) > 60 ) {
 					Mo_SAML_Logger::mo_saml_add_log( Mo_Saml_Error_Log::mo_saml_write_message( 'LOGIN_WIDGET_USERNAME_LENGTH_LIMIT_EXCEEDED' ), Mo_SAML_Logger::ERROR );
-					$error_code = Mo_Saml_Options_Enum_Error_Codes::$error_codes['WPSAMLERR011'];
-					wp_die( 'We couldn\'t sign you in. Please contact your administrator with the following error code.<br><br>Error code: <b>' . esc_attr( $error_code['code'] ) . '</b>.', 'Error: Username length limit exceeded.' );
+					throw new Mo_Saml_Username_Length_Limit_Exceeded_Exception( 'Username length limit exceeded.' );
 				} else {
 					Mo_SAML_Logger::mo_saml_add_log( Mo_Saml_Error_Log::mo_saml_write_message( 'LOGIN_WIDGET_USER_CREATION_FAILED' ), Mo_SAML_Logger::ERROR );
-					$error_code = Mo_Saml_Options_Enum_Error_Codes::$error_codes['WPSAMLERR005'];
-					wp_die( 'We couldn\'t sign you in. Please contact your administrator with the following error code.<br><br>Error code: <b>' . esc_attr( $error_code['code'] ) . '</b>.', 'Error: User not created.' );
+					throw new Mo_Saml_User_Creation_Exception( 'User not created.' );
 				}
 				exit();
 			}
@@ -588,7 +568,6 @@ if (is_multisite() && defined('SUBDOMAIN_INSTALL') && !SUBDOMAIN_INSTALL) {
 				Mo_SAML_Logger::mo_saml_add_log( Mo_Saml_Error_Log::mo_saml_write_message( 'LOGIN_WIDGET_DEFAULT_ROLE', array( 'defaultRole' => $default_role ) ), Mo_SAML_Logger::DEBUG );
 			}
 		}
-    do_action( 'mo_saml_user_group_name', $user_id, $group_name );
 		$this->mo_saml_add_firstlast_name( $user_id, $first_name, $last_name, $relay_state );
 	}
 
@@ -660,6 +639,7 @@ if (is_multisite() && defined('SUBDOMAIN_INSTALL') && !SUBDOMAIN_INSTALL) {
 	 *
 	 * @param string $statusmessage status message returned from the IDP in the SAML response.
 	 *
+	 * @throws Mo_SAML_Invalid_Status_Code_Exception For invalid status code.
 	 * @return void
 	 */
 	private function mo_saml_show_status_error( $status_code, $relay_state, $statusmessage ) {
@@ -668,10 +648,11 @@ if (is_multisite() && defined('SUBDOMAIN_INSTALL') && !SUBDOMAIN_INSTALL) {
 		$error_code    = Mo_Saml_Options_Enum_Error_Codes::$error_codes['WPSAMLERR006'];
 		if ( 'testValidate' === $relay_state ) {
 			$statusmessage = sprintf( $error_code['testconfig_msg'], $status_code );
-			mo_saml_display_test_config_error_page( $error_code, '', $statusmessage );
+			mo_saml_display_test_config_error_page( $error_code, $statusmessage );
 			exit;
 		} else {
-			Mo_SAML_Utilities::mo_saml_die( $error_code );
+			Mo_SAML_Logger::mo_saml_add_log( 'Invalid status code', Mo_SAML_Logger::ERROR );
+			throw new Mo_SAML_Invalid_Status_Code_Exception( 'Invalid status code received in the SAML Response.' );
 		}
 	}
 
@@ -701,5 +682,3 @@ if (is_multisite() && defined('SUBDOMAIN_INSTALL') && !SUBDOMAIN_INSTALL) {
 		return $relay_path;
 	}
 }
-
-$mo_saml_login_validate = new Mo_SAML_Login_Validate();

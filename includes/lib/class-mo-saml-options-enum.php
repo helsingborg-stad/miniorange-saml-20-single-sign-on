@@ -76,14 +76,13 @@ class Mo_Saml_Options_Enum_Service_Provider extends Mo_SAML_Basic_Enum {
  * Defines constants for Redirection SSO Links tab.
  */
 class Mo_Saml_Sso_Constants extends Mo_SAML_Basic_Enum {
-	const MO_SAML_REDIRECT_ERROR          = 'mo_saml_redirect_error_code';
-	const MO_SAML_REDIRECT_ERROR_REASON   = 'mo_saml_redirect_error_reason';
-	const MO_SAML_REQUIRED_CERTIFICATE    = 'mo_saml_required_certificate';
-	const MO_SAML_VALID_AGAINST_ENTITY_ID = 'mo_saml_valid_against_entity_id';
-	const MO_SAML_REQUIRED_ISSUER         = 'mo_saml_required_issuer';
-	const MO_SAML_TEST_STATUS             = 'MO_SAML_TEST_STATUS';
-	const MO_SAML_EXPIRE_NOTICE           = 'mo_date_expire_notice';
-	const MO_SAML_CLOSE_NOTICE            = 'mo_saml_close_notice';
+	const MO_SAML_REDIRECT_ERROR        = 'mo_saml_redirect_error_code';
+	const MO_SAML_REDIRECT_ERROR_REASON = 'mo_saml_redirect_error_reason';
+	const MO_SAML_REQUIRED_CERTIFICATE  = 'mo_saml_required_certificate';
+	const MO_SAML_REQUIRED_ISSUER       = 'mo_saml_required_issuer';
+	const MO_SAML_TEST_STATUS           = 'MO_SAML_TEST_STATUS';
+	const MO_SAML_EXPIRE_NOTICE         = 'mo_date_expire_notice';
+	const MO_SAML_CLOSE_NOTICE          = 'mo_saml_close_notice';
 }
 
 /**
@@ -214,9 +213,9 @@ class Mo_Saml_Options_Plugin_Constants extends Mo_SAML_Basic_Enum {
 	const CMS_NAME         = 'WP';
 	const APPLICATION_NAME = 'WP miniOrange SAML 2.0 SSO Plugin';
 	const APPLICATION_TYPE = 'SAML';
-	const VERSION          = '5.2.4';
+	const VERSION          = '5.3.1';
 	const HOSTNAME         = 'https://login.xecurify.com';
-	const WP_VERSION       = '6.7';
+	const WP_VERSION       = '6.8';
 	const PLUGIN_FILE      = 'miniorange-saml-20-single-sign-on/login.php';
 }
 
@@ -1066,11 +1065,12 @@ class Mo_Saml_Messages extends Mo_SAML_Basic_Enum {
 			'INVALID_CERT'             => __( 'Invalid certificate: Please provide a valid X.509 certificate.', 'miniorange-saml-20-single-sign-on' ),
 			'FIELDS_EMPTY'             => __( 'All the fields are required. Please enter valid entries.', 'miniorange-saml-20-single-sign-on' ),
 			'INVALID_FORMAT'           => __( 'Please match the requested format for Identity Provider Name. Only alphabets, numbers and underscore is allowed.', 'miniorange-saml-20-single-sign-on' ),
-			'METADATA_EMPTY'           => __( 'Please upload a valid metadata file or URL.', 'miniorange-saml-20-single-sign-on' ),
+			'METADATA_EMPTY'           => __( 'Please upload a valid metadata file or a valid metadata URL.', 'miniorange-saml-20-single-sign-on' ),
 			'IDP_NAME_EMPTY'           => __( 'IDP Name cannot be empty. Please enter a valid Identity Provider Name.', 'miniorange-saml-20-single-sign-on' ),
 			'METADATA_NAME_EMPTY'      => __( 'Error uploading metadata. Please upload a valid metadata file.', 'miniorange-saml-20-single-sign-on' ),
 			'INVALID_IDP_NAME_FORMAT'  => __( 'Please match the requested format for Identity Provider Name. Only alphabets, numbers and underscore is allowed.', 'miniorange-saml-20-single-sign-on' ),
 			'INVALID_METADATA_FILE'    => __( 'Please provide a valid metadata file.', 'miniorange-saml-20-single-sign-on' ),
+			'INVALID_XML_FILE'         => __( 'Invalid file. Please upload a valid XML file.', 'miniorange-saml-20-single-sign-on' ),
 			'INVALID_METADATA_URL'     => __( 'Please provide a valid metadata URL.', 'miniorange-saml-20-single-sign-on' ),
 			'INVALID_METADATA_CONFIG'  => __( 'Unable to fetch Metadata. Please check your metadata again.', 'miniorange-saml-20-single-sign-on' ),
 			'METADATA_UPLOAD_SUCCESS'  => __( 'Identity Provider details saved successfully.', 'miniorange-saml-20-single-sign-on' ),

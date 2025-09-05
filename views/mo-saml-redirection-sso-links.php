@@ -60,7 +60,7 @@ function mo_saml_display_sso_button_config( $add_sso_button_wp ) {
 				</h4>
 			</div>
 		</div>
-		<div class="mo-saml-bootstrap-row mo-saml-bootstrap-align-items-center mo-saml-bootstrap-mt-4">
+		<div class="mo-saml-bootstrap-row mo-saml-bootstrap-align-items-center mo-saml-bootstrap-mt-3">
 			<div class="mo-saml-bootstrap-col-md-7">
 				<h6><?php esc_html_e( 'Add a Single Sign-On button on the WordPress login page', 'miniorange-saml-20-single-sign-on' ); ?></h6>
 			</div>
@@ -69,15 +69,15 @@ function mo_saml_display_sso_button_config( $add_sso_button_wp ) {
 					<?php wp_nonce_field( 'mo_saml_add_sso_button_wp_option' ); ?>
 					<input type="hidden" name="option" value="mo_saml_add_sso_button_wp_option" />
 					<input type="checkbox" id="switch-sso-btn" name="mo_saml_add_sso_button_wp" <?php checked( 'true' === $add_sso_button_wp ); ?> class="mo-saml-switch mo-saml-bootstrap-mt-4" onchange="document.getElementById('mo_saml_add_sso_button_wp_form').submit();" value="true" />
-					<label class="mo-saml-switch-label" for="switch-sso-btn" title="You can only add a Single Sign On button after saving your Service Provider Settings."></label>
+					<label class="mo-saml-switch-label" for="switch-sso-btn" title="<?php esc_attr_e( 'You can only add a Single Sign On button after saving your Service Provider Settings.', 'miniorange-saml-20-single-sign-on' ); ?>"></label>
 				</form>
 			</div>
 		</div>
-		<div class="prem-info mo-saml-bootstrap-mt-4">
-			<div class="prem-icn sso-btn-prem-img"><img class="crown_img" src="<?php echo esc_url( Mo_SAML_Utilities::mo_saml_get_plugin_dir_url() . 'images/crown.webp' ); ?>">
+		<div class="prem-info mo-saml-bootstrap-mt-3">
+			<div class="prem-icn sso-btn-prem-img"><svg class="crown_img" stroke="#FA8E00" fill="#FA8E00" stroke-width="0" viewBox="0 0 576 512" height="40px" width="40px" xmlns="http://www.w3.org/2000/svg"><path d="M309 106c11.4-7 19-19.7 19-34c0-22.1-17.9-40-40-40s-40 17.9-40 40c0 14.4 7.6 27 19 34L209.7 220.6c-9.1 18.2-32.7 23.4-48.6 10.7L72 160c5-6.7 8-15 8-24c0-22.1-17.9-40-40-40S0 113.9 0 136s17.9 40 40 40c.2 0 .5 0 .7 0L86.4 427.4c5.5 30.4 32 52.6 63 52.6l277.2 0c30.9 0 57.4-22.1 63-52.6L535.3 176c.2 0 .5 0 .7 0c22.1 0 40-17.9 40-40s-17.9-40-40-40s-40 17.9-40 40c0 9 3 17.3 8 24l-89.1 71.3c-15.9 12.7-39.5 7.5-48.6-10.7L309 106z"></path></svg>
 				<p class="prem-info-text sso-btn-prem-text"><?php esc_html_e( 'Customization of SSO/Login button is available in Premium, Enterprise and All-Inclusive versions of the plugin', 'miniorange-saml-20-single-sign-on' ); ?> <a href="<?php echo esc_url( Mo_Saml_External_Links::PRICING_PAGE ); ?>" target="_blank" class="mo-saml-bootstrap-text-warning"><?php esc_html_e( 'Click here to upgrade', 'miniorange-saml-20-single-sign-on' ); ?></a></p>
 			</div>
-			<h5 class="form-head form-head-bar"><?php esc_html_e( 'Customize Single Sign-On Button', 'miniorange-saml-20-single-sign-on' ); ?></h5>
+			<h5 class="form-head form-head-bar mo-saml-bootstrap-mt-2"><?php esc_html_e( 'Customize Single Sign-On Button', 'miniorange-saml-20-single-sign-on' ); ?></h5>
 			<table class="mo-saml-bootstrap-w-100 mo-saml-bootstrap-mt-4">
 				<tbody>
 					<tr>
@@ -130,7 +130,7 @@ function mo_saml_display_sso_button_config( $add_sso_button_wp ) {
 									<tr>
 										<td><?php esc_html_e( 'Button Text:', 'miniorange-saml-20-single-sign-on' ); ?> </td>
 										<td>
-											<input class="mo-saml-bootstrap-ms-3 mo-saml-bootstrap-bg-light" type="text" name="mo_saml_button_text" value="Login with #IDP#" disabled="">
+											<input class="mo-saml-bootstrap-ms-3 mo-saml-bootstrap-bg-light" type="text" name="mo_saml_button_text" value="<?php esc_attr_e( 'Login with #IDP#', 'miniorange-saml-20-single-sign-on' ); ?>" disabled="">
 										</td>
 									</tr>
 								</tbody>
@@ -268,11 +268,11 @@ function mo_saml_display_auto_redirection_config() {
 			</div>
 		</div>
 		<div class="prem-info mo-saml-bootstrap-mt-4">
-			<div class="prem-icn auto-redir-prem-img"><img class="crown_img" src="<?php echo esc_url( Mo_SAML_Utilities::mo_saml_get_plugin_dir_url() . 'images/crown.webp' ); ?>">
+			<div class="prem-icn auto-redir-prem-img"><svg class="crown_img" stroke="#FA8E00" fill="#FA8E00" stroke-width="0" viewBox="0 0 576 512" height="40px" width="40px" xmlns="http://www.w3.org/2000/svg"><path d="M309 106c11.4-7 19-19.7 19-34c0-22.1-17.9-40-40-40s-40 17.9-40 40c0 14.4 7.6 27 19 34L209.7 220.6c-9.1 18.2-32.7 23.4-48.6 10.7L72 160c5-6.7 8-15 8-24c0-22.1-17.9-40-40-40S0 113.9 0 136s17.9 40 40 40c.2 0 .5 0 .7 0L86.4 427.4c5.5 30.4 32 52.6 63 52.6l277.2 0c30.9 0 57.4-22.1 63-52.6L535.3 176c.2 0 .5 0 .7 0c22.1 0 40-17.9 40-40s-17.9-40-40-40s-40 17.9-40 40c0 9 3 17.3 8 24l-89.1 71.3c-15.9 12.7-39.5 7.5-48.6-10.7L309 106z"></path></svg>
 				<p class="prem-info-text auto-redir-text"><?php esc_html_e( 'Auto-Redirection from site is configurable in Standard, Premium, Enterprise and All-Inclusive versions of the plugin', 'miniorange-saml-20-single-sign-on' ); ?> <a href="<?php echo esc_url( Mo_Saml_External_Links::PRICING_PAGE ); ?>" target="_blank" class="mo-saml-bootstrap-text-warning"><?php esc_html_e( 'Click here to upgrade', 'miniorange-saml-20-single-sign-on' ); ?></a></p>
 			</div>
-			<h6 class="mo-saml-bootstrap-mt-5"><?php esc_html_e( '1. Select this option if you want to restrict your site to only logged in users. Selecting this option will redirect the users to your IdP if logged in session is not found.', 'miniorange-saml-20-single-sign-on' ); ?></h6>
-			<div class="mo-saml-bootstrap-row align-items-top mo-saml-bootstrap-mt-3">
+			<h6 class="mo-saml-bootstrap-mt-2"><?php esc_html_e( '1. Select this option if you want to restrict your site to only logged in users. Selecting this option will redirect the users to your IdP if logged in session is not found.', 'miniorange-saml-20-single-sign-on' ); ?></h6>
+			<div class="mo-saml-bootstrap-row align-items-top mo-saml-bootstrap-mt-2">
 				<div class="mo-saml-bootstrap-col-md-7">
 					<p><?php esc_html_e( 'Redirect to IdP if user not logged in [PROTECT COMPLETE SITE]', 'miniorange-saml-20-single-sign-on' ); ?> <span class="mo-saml-bootstrap-text-danger">* </span>: </p>
 				</div>
@@ -283,7 +283,7 @@ function mo_saml_display_auto_redirection_config() {
 			</div>
 			<hr />
 			<h6><?php esc_html_e( '2. It will force user to provide credentials on your IdP on each login attempt even if the user is already logged in to IdP. This option may require some additional setting in your IdP to force it depending on your Identity Provider.', 'miniorange-saml-20-single-sign-on' ); ?></h6>
-			<div class="mo-saml-bootstrap-row align-items-top mo-saml-bootstrap-mt-3">
+			<div class="mo-saml-bootstrap-row align-items-top mo-saml-bootstrap-mt-2">
 				<div class="mo-saml-bootstrap-col-md-7">
 					<p><?php esc_html_e( 'Force authentication with your IdP on each login attempt', 'miniorange-saml-20-single-sign-on' ); ?> <span class="mo-saml-bootstrap-text-danger">* </span>: </p>
 				</div>
@@ -321,12 +321,12 @@ function mo_saml_display_redirect_from_wp_login_config() {
 			</div>
 		</div>
 		<div class="prem-info mo-saml-bootstrap-mt-4">
-			<div class="prem-icn auto-redir-prem-img"><img class="crown_img" src="<?php echo esc_url( Mo_SAML_Utilities::mo_saml_get_plugin_dir_url() . 'images/crown.webp' ); ?>">
+			<div class="prem-icn auto-redir-prem-img"><svg class="crown_img" stroke="#FA8E00" fill="#FA8E00" stroke-width="0" viewBox="0 0 576 512" height="40px" width="40px" xmlns="http://www.w3.org/2000/svg"><path d="M309 106c11.4-7 19-19.7 19-34c0-22.1-17.9-40-40-40s-40 17.9-40 40c0 14.4 7.6 27 19 34L209.7 220.6c-9.1 18.2-32.7 23.4-48.6 10.7L72 160c5-6.7 8-15 8-24c0-22.1-17.9-40-40-40S0 113.9 0 136s17.9 40 40 40c.2 0 .5 0 .7 0L86.4 427.4c5.5 30.4 32 52.6 63 52.6l277.2 0c30.9 0 57.4-22.1 63-52.6L535.3 176c.2 0 .5 0 .7 0c22.1 0 40-17.9 40-40s-17.9-40-40-40s-40 17.9-40 40c0 9 3 17.3 8 24l-89.1 71.3c-15.9 12.7-39.5 7.5-48.6-10.7L309 106z"></path></svg>
 				<p class="prem-info-text auto-redir-wp-text"><?php esc_html_e( 'Auto-Redirection from WordPress is configurable in Standard, Premium, Enterprise and All-Inclusive versions of the plugin', 'miniorange-saml-20-single-sign-on' ); ?> <a href="<?php echo esc_url( Mo_Saml_External_Links::PRICING_PAGE ); ?>" target="_blank" class="mo-saml-bootstrap-text-warning"><?php esc_html_e( 'Click here to upgrade', 'miniorange-saml-20-single-sign-on' ); ?></a></p>
 			</div>
-			<h6 class="mo-saml-bootstrap-mt-5"><?php esc_html_e( '1. Select this option if you want the users visiting any of the following URLs to get redirected to your configured IdP for authentication:', 'miniorange-saml-20-single-sign-on' ); ?></h6>
+			<h6 class="mo-saml-bootstrap-mt-2"><?php esc_html_e( '1. Select this option if you want the users visiting any of the following URLs to get redirected to your configured IdP for authentication:', 'miniorange-saml-20-single-sign-on' ); ?></h6>
 			<h6><code class="bg-cstm mo-saml-bootstrap-text-dark mo-saml-bootstrap-rounded"><?php echo esc_url( wp_login_url() ); ?></code> <?php esc_html_e( 'or', 'miniorange-saml-20-single-sign-on' ); ?> <code class="bg-cstm mo-saml-bootstrap-text-dark mo-saml-bootstrap-rounded"><?php echo esc_url( admin_url() ); ?></code></h6>
-			<div class="mo-saml-bootstrap-row align-items-top mo-saml-bootstrap-mt-4">
+			<div class="mo-saml-bootstrap-row align-items-top mo-saml-bootstrap-mt-2">
 				<div class="mo-saml-bootstrap-col-md-6">
 					<p><?php esc_html_e( 'Redirect to IdP from WordPress Login Page', 'miniorange-saml-20-single-sign-on' ); ?> <span class="mo-saml-bootstrap-text-danger">* </span>: </p>
 				</div>
@@ -336,8 +336,8 @@ function mo_saml_display_redirect_from_wp_login_config() {
 				</div>
 			</div>
 			<hr>
-			<h6 class=" mt-2"><?php esc_html_e( '2. Select this option to enable backdoor login if auto-redirect from WordPress Login is enabled.', 'miniorange-saml-20-single-sign-on' ); ?></h6>
-			<div class="mo-saml-bootstrap-row align-items-top mo-saml-bootstrap-mt-4">
+			<h6 class="mo-saml-bootstrap-mt-3"><?php esc_html_e( '2. Select this option to enable backdoor login if auto-redirect from WordPress Login is enabled.', 'miniorange-saml-20-single-sign-on' ); ?></h6>
+			<div class="mo-saml-bootstrap-row align-items-top mo-saml-bootstrap-mt-2">
 				<div class="mo-saml-bootstrap-col-md-6">
 					<p><?php esc_html_e( 'Checking this option creates a backdoor to login to your Website using WordPress credentials incase you get locked out of your IdP', 'miniorange-saml-20-single-sign-on' ); ?> <span class="mo-saml-bootstrap-text-danger">* </span>: </p>
 				</div>
@@ -375,7 +375,7 @@ function mo_saml_display_shortcode_config() {
 			</div>
 		</div>
 		<div class="prem-info mo-saml-bootstrap-mt-4">
-			<div class="prem-icn auto-redir-prem-img"><img class="crown_img" src="<?php echo esc_url( Mo_SAML_Utilities::mo_saml_get_plugin_dir_url() . 'images/crown.webp' ); ?>" width="35px">
+			<div class="prem-icn auto-redir-prem-img"><svg class="crown_img" stroke="#FA8E00" fill="#FA8E00" stroke-width="0" viewBox="0 0 576 512" height="40px" width="40px" xmlns="http://www.w3.org/2000/svg"><path d="M309 106c11.4-7 19-19.7 19-34c0-22.1-17.9-40-40-40s-40 17.9-40 40c0 14.4 7.6 27 19 34L209.7 220.6c-9.1 18.2-32.7 23.4-48.6 10.7L72 160c5-6.7 8-15 8-24c0-22.1-17.9-40-40-40S0 113.9 0 136s17.9 40 40 40c.2 0 .5 0 .7 0L86.4 427.4c5.5 30.4 32 52.6 63 52.6l277.2 0c30.9 0 57.4-22.1 63-52.6L535.3 176c.2 0 .5 0 .7 0c22.1 0 40-17.9 40-40s-17.9-40-40-40s-40 17.9-40 40c0 9 3 17.3 8 24l-89.1 71.3c-15.9 12.7-39.5 7.5-48.6-10.7L309 106z"></path></svg>
 				<p class="prem-info-text shortcode-text"><?php esc_html_e( 'These options are configurable in the Standard, Premium, Enterprise and All-Inclusive version of the plugin.', 'miniorange-saml-20-single-sign-on' ); ?> <a href="<?php echo esc_url( Mo_Saml_External_Links::PRICING_PAGE ); ?>" target="_blank" class="mo-saml-bootstrap-text-warning"><?php esc_html_e( 'Click here to upgrade', 'miniorange-saml-20-single-sign-on' ); ?></a></p>
 			</div>
 			<div class="mo-saml-bootstrap-row align-items-top">

@@ -11,6 +11,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 require_once 'mo-saml-import-export.php';
 require_once 'class-mo-saml-logger.php';
+require_once 'class-mo-saml-utilities.php';
 
 foreach ( glob( plugin_dir_path( __FILE__ ) . 'views' . DIRECTORY_SEPARATOR . '*.php' ) as $filename ) {
 	include_once $filename;
@@ -114,40 +115,23 @@ function mo_saml_is_customer_registered_saml() {
  * This function displays test configuration error.
  *
  * @param string $error_code error code .
- * @param string $display_metadata_mismatch The metadata recieved in SMAL response and stored in plugin if the error corresponds to a mismatched metadata .
  * @param string $status_message The status sent by Identity Provider.
  */
-function mo_saml_display_test_config_error_page( $error_code, $display_metadata_mismatch = '', $status_message = '' ) {
+function mo_saml_display_test_config_error_page( $error_code, $status_message = '' ) {
 	$error_fix     = $error_code['fix'];
 	$error_cause   = $error_code['cause'];
+	$error_faq     = $error_code['faq'];
 	$error_message = empty( $status_message ) && ! empty( $error_code['testconfig_msg'] ) ? $error_code['testconfig_msg'] : $status_message;
 	if ( ob_get_level() > 0 ) {
 		ob_end_clean();
 	}
 
-	echo '<div style="font-family:Calibri;padding:0 3%;">';
-	echo '<div style="color: #a94442;background-color: #f2dede;padding: 15px;margin-bottom: 20px;text-align:center;border:1px solid #E6B3B2;font-size:18pt;"> ERROR ' . esc_html( $error_code['code'] ) . '</div>
-	<div style="color: #a94442;font-size:14pt; margin-bottom:20px;"><p><strong>Error: </strong>' . wp_kses_post( $error_cause ) . '</p>
-	<p>Please contact your administrator and report the following error:</p>
-	<p><strong>Possible Cause: </strong>' . esc_html( $error_message ) . '</p>';
+	echo '<div style="font-family:Calibri;padding:0 3%;">
+			<div style="color: #a94442;background-color: #f2dede;padding: 15px;margin-bottom: 20px;text-align:center;border:1px solid #E6B3B2;font-size:18pt;"> Error Code: ' . esc_html( $error_code['code'] ) . '</div>
+	<div style="color: #a94442;font-size:14pt; margin-bottom:20px;"><p><strong>Error: </strong>' . esc_html( $error_message ) . '</p>';
 	if ( ! empty( $status_message ) ) {
 		echo '<p><strong>Status Message in the SAML Response:</strong> <br/>' . esc_html( $status_message ) . '</p><br>';
 	}
-	if ( ! empty( $display_metadata_mismatch ) ) {
-		echo wp_kses(
-			$display_metadata_mismatch,
-			array(
-				'p'      => array(
-					'strong' => array(),
-				),
-				'strong' => array(),
-			)
-		);
-	}
-	echo '<p><strong>Solution:</strong></p>
-		' . wp_kses_post( $error_fix ) . '
-	</div>
-	<div style="margin:3%;display:block;text-align:center;">';
 	if ( 'WPSAMLERR010' === $error_code['code'] || 'WPSAMLERR004' === $error_code['code'] || 'WPSAMLERR012' === $error_code['code'] ) {
 		$option_id = '';
 		switch ( $error_code['code'] ) {
@@ -161,20 +145,25 @@ function mo_saml_display_test_config_error_page( $error_code, $display_metadata_
 				$option_id = 'mo_saml_fix_iconv_cert';
 				break;
 		}
-		echo '<div>
-			    <ol style="text-align: center">
+		echo '<div style="margin:3%;display:block;text-align:center;">
+			    <p style="text-align: center">
                     <form method="post" action="">';
 		wp_nonce_field( $option_id );
 		echo '<input type="hidden" name="option" value="' . esc_attr( $option_id ) . '" />
-                <input type="submit" class="miniorange-button" style="width: 15%" value="' . esc_attr( 'Fix Issue' ) . '">
+                <input type="submit" class="miniorange-button" style="width: 25%" value="' . esc_attr( 'Click here to Fix Issue' ) . '">
                 <br>
-                </ol>      
-            </form>      
+                </p>      
+            </form>    
+			<p><strong>To know more about the issue, please go through the <a href="' . esc_url( $error_faq ) . '">FAQ</a>  
           </div>';
 	} else {
-		echo '<div style="margin:3%;display:block;text-align:center;"><input style="padding:1%;width:100px;background: #0091CD none repeat scroll 0% 0%;cursor: pointer;font-size:15px;border-width: 1px;border-style: solid;border-radius: 3px;white-space: nowrap;box-sizing: border-box;border-color: #0073AA;box-shadow: 0px 1px 0px rgba(120, 200, 230, 0.6) inset;color: #FFF;"type="button" value="Done" onClick="self.close();"></div>';
+		echo '<p><strong>Solution:</strong></p>
+		' . wp_kses_post( $error_fix ) . '';
+		echo '<div style="margin:3%;display:block;text-align:center;">
+				<input style="padding:1%;width:100px;background: #0091CD none repeat scroll 0% 0%;cursor: pointer;font-size:15px;border-width: 1px;border-style: solid;border-radius: 3px;white-space: nowrap;box-sizing: border-box;border-color: #0073AA;box-shadow: 0px 1px 0px rgba(120, 200, 230, 0.6) inset;color: #FFF;"type="button" value="Done" onClick="self.close();">
+			<p><strong>To fix the issue you are facing, Please go through this <a href="' . esc_url( $error_faq ) . '">FAQ</a>
+	</div></div>';
 	}
-	echo '</div>';
 	mo_saml_download_logs( $error_message, $error_cause );
 	exit;
 }
@@ -186,23 +175,6 @@ function mo_saml_display_test_config_error_page( $error_code, $display_metadata_
  * @param string $cause_msg casuse message.
  */
 function mo_saml_download_logs( $error_msg, $cause_msg ) {
-
-	echo '<div style="font-family:Calibri;padding:0 3%;">';
-	echo '<hr class="header"/>';
-	echo '          <p style="font-size: larger ;color: #a94442     ">' . wp_kses(
-		__( 'You can check out the Troubleshooting section provided in the plugin to resolve the issue.<br> If the problem persists, mail us at <a href="mailto:samlsupport@xecurify.com">samlsupport@xecurify.com</a>', 'miniorange-saml-20-single-sign-on' ),
-		array(
-			'br' => array(),
-			'a'  => array( 'href' => array() ),
-		)
-	) . '.</p>
-                   
-                    </div>
-                    <div style="margin:3%;display:block;text-align:center;">
-                   
-				<input class="miniorange-button" type="button" value="' . esc_attr_x( 'Close', '', 'miniorange-saml-20-single-sign-on' ) . '" onclick="self.close()"></form>            
-                </div>    ';
-	echo '&nbsp;&nbsp;';
 
 	$saml_response = '';
 	//phpcs:ignore WordPress.Security.NonceVerification.Missing 
@@ -250,5 +222,29 @@ function mo_saml_add_query_arg( $query_arg, $url ) {
 	}
 	$url = add_query_arg( $query_arg, $url );
 	return $url;
+}
+
+/**
+ * Displays the error message to end users along with the provided error code.
+ *
+ * @param array $error_code An array containing the error code details: code, fix, cause and description.
+ * @return void
+ */
+function mo_saml_display_end_user_error_message_with_code( $error_code ) {
+	wp_die( '<b>[' . esc_attr( $error_code['code'] ) . ']</b> ' . esc_attr( Mo_Saml_Options_Enum_Error_Codes::ERROR_MESSAGE ), esc_attr( $error_code['code'] ) . ' ' . esc_attr( $error_code['cause'] ) );
+}
+
+/**
+ * Displays the error message to admins via admin notice.
+ *
+ * @param array $error_code An array containing the error code details: code, fix, cause and description.
+ * @return void
+ */
+function mo_saml_display_exception_notice_to_admin( $error_code ) {
+	update_option(
+		'mo_saml_message',
+		'<b>[' . esc_html( $error_code['code'] ) . ']</b> ' . esc_html( $error_code['cause'] ) . '</br><b>Fix:</b> ' . $error_code['fix']
+	);
+	Mo_SAML_Utilities::mo_saml_show_error_message();
 }
 ?>

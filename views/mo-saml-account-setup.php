@@ -98,7 +98,7 @@ function mo_saml_show_new_registration_page_saml() {
 						<input type="hidden" name="option" value="mo_saml_register_customer" />
 						<?php wp_nonce_field( 'mo_saml_register_customer', 'mo_saml_register_customer_nonce' ); ?>
 
-						<div class="mo-saml-bootstrap-row mo-saml-bootstrap-align-items-center mo-saml-bootstrap-justify-content-center mo-saml-bootstrap-mt-4 mo-saml-reg-field">
+						<div class="mo-saml-bootstrap-row mo-saml-bootstrap-align-items-center mo-saml-bootstrap-justify-content-center mo-saml-reg-field">
 							<div class="mo-saml-bootstrap-col-md-6">
 								<h6 class="mo-saml-bootstrap-text-secondary"><?php esc_html_e( 'Email', 'miniorange-saml-20-single-sign-on' ); ?> <span class="mo-saml-bootstrap-text-danger">* </span>:</h6>
 							</div>

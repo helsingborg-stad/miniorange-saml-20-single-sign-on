@@ -1106,7 +1106,7 @@ msgstr ""
 
 #: mo-saml-settings-page.php:1314
 msgid ""
-"You can find the <b>EntityID</b> in Your IdP-Metadata XML file enclosed in "
+"You can find the <b>EntityID</b> in Your IdP-Metadata XML file enclosed in"
 "<code>EntityDescriptor</code> tag having attribute as <code>entityID</code>"
 msgstr ""
 

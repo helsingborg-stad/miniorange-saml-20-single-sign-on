@@ -10,6 +10,9 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 require 'class-mo-saml-post-save-handler.php';
+require_once dirname( __DIR__ ) . '/exceptions/class-mo-saml-metadata-reader-exception.php';
+require_once dirname( __DIR__ ) . '/exceptions/class-mo-saml-invalid-xml-exception.php';
+require_once dirname( __DIR__ ) . '/exceptions/class-mo-saml-dom-extension-disabled-exception.php';
 
 /**
  * Mo_SAML_Upload_Metadata_Handler Class to upload metadata file and getting IdP Metadata.
@@ -137,11 +140,7 @@ class Mo_SAML_Upload_Metadata_Handler {
 	 */
 	public static function mo_saml_handle_upload_metadata( $file, $post_array, $db_handler ) {
 
-		//phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_set_error_handler -- We need this function to handle errors.
-		$old_error_handler = set_error_handler( array( self::class, 'mo_saml_handle_xml_error' ) );
-		$document          = new DOMDocument();
-		$document->loadXML( $file );
-		restore_error_handler();
+		$document = Mo_SAML_Utilities::mo_saml_safe_load_xml( $file );
 		//phpcs:ignore WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase -- DOMDocumet has by default has the naming convention which is not SnakeCase.
 		$first_child = $document->firstChild;
 		if ( Mo_SAML_Utilities::mo_saml_check_empty_or_null( array( $first_child ) ) ) {
@@ -200,19 +199,5 @@ class Mo_SAML_Upload_Metadata_Handler {
 		}
 
 		$post_save->mo_saml_post_save_action();
-	}
-
-	/**
-	 * This function is for handling XML file errors.
-	 *
-	 * @param string $errno   error no.
-	 * @param string $errstr  error str.
-	 */
-	public static function mo_saml_handle_xml_error( $errno, $errstr ) {
-		if ( E_WARNING === $errno && ( substr_count( $errstr, 'DOMDocument::loadXML()' ) > 0 ) ) {
-			return true;
-		} else {
-			return false;
-		}
 	}
 }

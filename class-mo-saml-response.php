@@ -62,7 +62,7 @@ class Mo_SAML_Response {
 	 *
 	 * @param DOMElement|NULL $xml The input message.
 	 */
-	public function __construct( DOMElement $xml = null ) {
+	public function __construct( $xml = null ) {
 
 		$this->assertions   = array();
 		$this->certificates = array();
@@ -89,13 +89,9 @@ class Mo_SAML_Response {
 				continue;
 			}
 
-			try {
-				// phpcs:ignore WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase -- $xml is the object of PHP's predefined class
-				if ( 'Assertion' === $node->localName || 'EncryptedAssertion' === $node->localName ) {
-					$this->assertions[] = new Mo_SAML_Assertion( $node );
-				}
-			} catch ( Exception $exception ) {
-				wp_die( 'We could not sign you in. Please contact your administrator.', 'Missing Issuer in Assertion' );
+			// phpcs:ignore WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase -- $xml is the object of PHP's predefined class
+			if ( 'Assertion' === $node->localName || 'EncryptedAssertion' === $node->localName ) {
+				$this->assertions[] = new Mo_SAML_Assertion( $node );
 			}
 		}
 	}

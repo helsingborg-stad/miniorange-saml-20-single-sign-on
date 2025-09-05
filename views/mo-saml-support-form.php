@@ -30,14 +30,14 @@ function mo_saml_display_support_form( $display_attrs = false ) {
 					<input type="hidden" name="option" value="mo_saml_contact_us_query_option" />
 
 					<div class="contact-form-head">
-						<p class="mo-saml-bootstrap-h5"><?php esc_html_e( 'Feature Request/Contact Us', 'miniorange-saml-20-single-sign-on' ); ?> <br> <?php esc_html_e( '(24*7 Support)', 'miniorange-saml-20-single-sign-on' ); ?></p>
+						<p class="mo-saml-bootstrap-h5"><?php esc_html_e( 'Ask Us Anything ', 'miniorange-saml-20-single-sign-on' ); ?> <br> <?php esc_html_e( '(24*7 Support)', 'miniorange-saml-20-single-sign-on' ); ?></p>
 						<p class="mo-saml-bootstrap-h6 mo-saml-bootstrap-mt-3"> <?php esc_html_e( 'Call us at +1 978 658 9387 in case of any help', 'miniorange-saml-20-single-sign-on' ); ?></p>
 					</div>
 					<div class="contact-form-body mo-saml-bootstrap-p-3">
 						<input type="email" id="mo_saml_support_email" placeholder="<?php esc_attr_e( 'Enter your email', 'miniorange-saml-20-single-sign-on' ); ?>" class="mo_saml_table_textbox mo-saml-bootstrap-mt-4" name="mo_saml_contact_us_email" value="<?php echo esc_attr( ( empty( get_option( Mo_Saml_Customer_Constants::ADMIN_EMAIL ) ) ) ? get_option( 'admin_email' ) : get_option( Mo_Saml_Customer_Constants::ADMIN_EMAIL ) ); ?>" required>
 						<input type="tel" id="contact_us_phone" pattern="[\+]?[0-9]{1,4}[\s]?([0-9]{4,12})*" class="mo_saml_table_textbox mo-saml-bootstrap-mt-4" name="mo_saml_contact_us_phone" value="<?php echo esc_attr( empty( get_option( Mo_Saml_Customer_Constants::ADMIN_PHONE ) ) ? '' : get_option( Mo_Saml_Customer_Constants::ADMIN_PHONE ) ); ?>" placeholder="<?php esc_attr_e( 'Enter your phone', 'miniorange-saml-20-single-sign-on' ); ?>">
 						<textarea class="mo_saml_table_textbox mo-saml-bootstrap-mt-4"  name="mo_saml_contact_us_query" rows="4" style="resize: vertical;" required placeholder="<?php esc_attr_e( 'Write your query here', 'miniorange-saml-20-single-sign-on' ); ?>" id="mo_saml_query"></textarea>
-						<div class="mo-saml-call-setup mo-saml-bootstrap-mt-4 mo-saml-bootstrap-p-3">
+						<div class="mo-saml-call-setup mo-saml-bootstrap-mt-3 mo-saml-bootstrap-p-3">
 							<h6><?php esc_html_e( 'Setup a Call / Screen-share session with miniOrange Technical Team', 'miniorange-saml-20-single-sign-on' ); ?></h6>
 							<hr />
 							<div class="mo-saml-bootstrap-row mo-saml-bootstrap-align-items-center mo-saml-bootstrap-mt-3">
@@ -92,7 +92,7 @@ function mo_saml_display_support_form( $display_attrs = false ) {
 								</div>
 							</div>
 						</div>
-						<input type="submit" value="<?php esc_html_e( 'Submit', 'miniorange-saml-20-single-sign-on' ); ?>" class="mo-saml-bs-btn btn-cstm mo-saml-bootstrap-text-white mo-saml-bootstrap-mt-4 mo-saml-bootstrap-w-50">
+						<input type="submit" value="<?php esc_html_e( 'Submit', 'miniorange-saml-20-single-sign-on' ); ?>" class="mo-saml-bs-btn btn-cstm mo-saml-bootstrap-text-white mo-saml-bootstrap-mt-3 mo-saml-bootstrap-w-50">
 					</div>
 				</form>
 			</div>

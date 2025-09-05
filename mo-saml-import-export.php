@@ -81,7 +81,7 @@ function mo_saml_miniorange_import_export( $test_config_screen = false, $json_in
 			} else {
 				update_option( Mo_Saml_Options_Enum_Sso_Login::MO_SAML_KEEP_SETTINGS_DELETION, '' );
 			}
-			update_option( 'mo_saml_message', 'Keep Settings Intact Option Updated Successfully.' );
+			update_option( 'mo_saml_message', __( 'Keep Settings Intact Option Updated Successfully.', 'miniorange-saml-20-single-sign-on' ) );
 			Mo_SAML_Utilities::mo_saml_show_success_message();
 		}
 
