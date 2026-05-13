@@ -237,6 +237,7 @@ class Saml_Mo_Login {
 		if ( ! is_user_logged_in() ) {
 			$saml_idp_name      = get_option( Mo_Saml_Options_Enum_Service_Provider::IDENTITY_NAME );
 			$custom_button_text = isset( $saml_idp_name ) ? 'Login with ' . $saml_idp_name : 'Login with SSO';
+			$custom_button_text = apply_filters('mo_login_button_text', $custom_button_text);
 			wp_enqueue_script( 'mo_saml_login_button_script', plugins_url( 'includes/js/sso_button.min.js', __FILE__ ), array(), Mo_Saml_Options_Plugin_Constants::VERSION, false );
 			echo '
                 <input id="saml_user_login_input" type="hidden" name="option" value="">
